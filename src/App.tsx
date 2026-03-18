@@ -9,6 +9,7 @@ import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import Landing from "./pages/Landing";
 import Play from "./pages/Play";
 import HostLobby from "./pages/HostLobby";
+import GameScreen from "./pages/GameScreen";
 import ControllerView from "./pages/ControllerView";
 import GameLibrary from "./pages/GameLibrary";
 import Contribute from "./pages/Contribute";
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/" element={<Landing />} />
                 <Route path="/play" element={<Play />} />
                 <Route path="/play/host" element={<HostLobby />} />
+                <Route path="/play/game/:roomCode" element={<GameScreen />} />
                 <Route path="/play/controller/:roomCode" element={<ControllerView />} />
                 <Route path="/games" element={<GameLibrary />} />
                 <Route path="/contribute" element={<Contribute />} />
