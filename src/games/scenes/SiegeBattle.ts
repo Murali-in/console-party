@@ -79,9 +79,8 @@ export default class SiegeBattleScene extends Phaser.Scene {
     // Danger lines
     const dg = this.add.graphics();
     dg.lineStyle(1, 0xf87171, 0.2);
-    dg.setLineDash([4, 4]);
-    dg.lineBetween(60, this.groundY - 30, 140, this.groundY - 30);
-    dg.lineBetween(w - 140, this.groundY - 30, w - 60, this.groundY - 30);
+    for (let x = 60; x < 140; x += 8) dg.lineBetween(x, this.groundY - 30, x + 4, this.groundY - 30);
+    for (let x = w - 140; x < w - 60; x += 8) dg.lineBetween(x, this.groundY - 30, x + 4, this.groundY - 30);
 
     this.aimLine = this.add.graphics().setDepth(10);
     this.powerBar = this.add.graphics().setDepth(10);
