@@ -16,9 +16,10 @@ export interface RoomPlayer {
   name: string;
   index: number;
   color: string;
+  ready?: boolean;
 }
 
-const PLAYER_COLORS = ['#5B4FFF', '#FF4F4F', '#2ECC71', '#FFD93D'];
+const PLAYER_COLORS = ['#6c63ff', '#34d399', '#f87171', '#fbbf24'];
 
 interface RealtimeContextType {
   createRoom: () => string;
@@ -26,6 +27,7 @@ interface RealtimeContextType {
   hostRoom: (roomCode: string, callbacks: HostCallbacks) => RealtimeChannel;
   sendInput: (channel: RealtimeChannel, input: PlayerInput) => void;
   sendGameEvent: (channel: RealtimeChannel, type: string, data: any) => void;
+  sendReady: (channel: RealtimeChannel, playerId: string, ready: boolean) => void;
   leaveRoom: (channel: RealtimeChannel) => void;
 }
 
@@ -34,12 +36,14 @@ interface RoomCallbacks {
   onGameStarted?: (gameId: string) => void;
   onGameEvent?: (type: string, data: any) => void;
   onGameOver?: (winner: string, scores: Record<string, number>) => void;
+  onCountdown?: (count: number) => void;
 }
 
 interface HostCallbacks {
   onPlayerJoined?: (players: RoomPlayer[]) => void;
   onPlayerLeft?: (playerId: string) => void;
   onInputUpdate?: (input: PlayerInput) => void;
+  onPlayerReady?: (playerId: string, ready: boolean) => void;
 }
 
 const RealtimeContext = createContext<RealtimeContextType>({} as RealtimeContextType);
@@ -69,14 +73,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           name: payload.name,
           index: playersRef.current.length,
           color: PLAYER_COLORS[playersRef.current.length % 4],
+          ready: false,
         };
         playersRef.current = [...playersRef.current, player];
-        // Send back player info
         channel.send({ type: 'broadcast', event: 'player-accepted', payload: { player, players: playersRef.current } });
         callbacks.onPlayerJoined?.(playersRef.current);
       })
       .on('broadcast', { event: 'player-input' }, ({ payload }) => {
         callbacks.onInputUpdate?.(payload as PlayerInput);
+      })
+      .on('broadcast', { event: 'player-ready' }, ({ payload }) => {
+        playersRef.current = playersRef.current.map(p =>
+          p.id === payload.playerId ? { ...p, ready: payload.ready } : p
+        );
+        callbacks.onPlayerReady?.(payload.playerId, payload.ready);
+        callbacks.onPlayerJoined?.(playersRef.current);
       })
       .on('broadcast', { event: 'player-leave' }, ({ payload }) => {
         playersRef.current = playersRef.current.filter(p => p.id !== payload.id);
@@ -107,6 +118,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       .on('broadcast', { event: 'game-over' }, ({ payload }) => {
         callbacks.onGameOver?.(payload.winner, payload.scores);
       })
+      .on('broadcast', { event: 'countdown' }, ({ payload }) => {
+        callbacks.onCountdown?.(payload.count);
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           channel.send({ type: 'broadcast', event: 'player-join', payload: { id: playerId, name: playerName } });
@@ -124,12 +138,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     channel.send({ type: 'broadcast', event: 'game-event', payload: { type, data } });
   }, []);
 
+  const sendReady = useCallback((channel: RealtimeChannel, playerId: string, ready: boolean) => {
+    channel.send({ type: 'broadcast', event: 'player-ready', payload: { playerId, ready } });
+  }, []);
+
   const leaveRoom = useCallback((channel: RealtimeChannel) => {
     supabase.removeChannel(channel);
   }, []);
 
   return (
-    <RealtimeContext.Provider value={{ createRoom, joinRoom, hostRoom, sendInput, sendGameEvent, leaveRoom }}>
+    <RealtimeContext.Provider value={{ createRoom, joinRoom, hostRoom, sendInput, sendGameEvent, sendReady, leaveRoom }}>
       {children}
     </RealtimeContext.Provider>
   );

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playTransform, playEliminate, playVictory } from '@/games/SoundFX';
 
 interface PropHuntConfig {
   players: RoomPlayer[];
@@ -7,8 +8,7 @@ interface PropHuntConfig {
   inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }>;
 }
 
-const PROP_EMOJIS = ['🪑', '📦', '🪴', '🛢️'];
-const PROP_COLORS = [0x8B4513, 0x654321, 0x2d5a27, 0x555555];
+const PROP_EMOJIS = ['🪑', '📦', '🪴', '🛢️', '🧸', '📚'];
 
 export default class PropHuntScene extends Phaser.Scene {
   private roomPlayers: RoomPlayer[];
@@ -25,12 +25,12 @@ export default class PropHuntScene extends Phaser.Scene {
   private phaseTimer = 30000;
   private seekTimer = 90000;
   private hunterBlind!: Phaser.GameObjects.Rectangle;
+  private hunterBlindText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private finished = false;
-  private checkCooldown: Map<string, number> = new Map();
-
-  // Scattered decoy props
-  private decoyPositions: { x: number; y: number; emoji: string }[] = [];
+  private checkCooldown = 0;
+  private hunterCheckRadius!: Phaser.GameObjects.Arc;
+  private scanPulse = 0;
 
   constructor(config: PropHuntConfig) {
     super({ key: 'PropHunt' });
@@ -43,47 +43,67 @@ export default class PropHuntScene extends Phaser.Scene {
     const w = Number(this.game.config.width);
     const h = Number(this.game.config.height);
 
-    // Room background
-    this.add.rectangle(w / 2, h / 2, w - 60, h - 60, 0x120a00, 0.3).setStrokeStyle(1, 0x6c63ff, 0.15);
+    // Room background with furniture-like patterns
+    const bg = this.add.graphics();
+    bg.fillStyle(0x120a00, 0.15);
+    bg.fillRect(40, 40, w - 80, h - 80);
+    bg.lineStyle(1, 0x6c63ff, 0.1);
+    bg.strokeRect(40, 40, w - 80, h - 80);
 
-    // Scatter decoy props around
-    for (let i = 0; i < 20; i++) {
-      const dx = 60 + Math.random() * (w - 120);
-      const dy = 60 + Math.random() * (h - 120);
+    // Floor tiles
+    bg.lineStyle(1, 0xffffff, 0.02);
+    for (let x = 40; x < w - 40; x += 60) bg.lineBetween(x, 40, x, h - 40);
+    for (let y = 40; y < h - 40; y += 60) bg.lineBetween(40, y, w - 40, y);
+
+    // Scatter decoy props (more of them, varied sizes)
+    const decoyCount = 25;
+    for (let i = 0; i < decoyCount; i++) {
+      const dx = 70 + Math.random() * (w - 140);
+      const dy = 70 + Math.random() * (h - 140);
       const emoji = PROP_EMOJIS[Math.floor(Math.random() * PROP_EMOJIS.length)];
-      this.decoyPositions.push({ x: dx, y: dy, emoji });
-      this.add.text(dx, dy, emoji, { fontSize: '28px' }).setOrigin(0.5);
+      const size = 22 + Math.random() * 12;
+      this.add.text(dx, dy, emoji, { fontSize: `${size}px` }).setOrigin(0.5).setAlpha(0.9);
     }
 
-    // Assign roles: first player = hunter
+    // Assign roles
     this.hunterId = this.roomPlayers[0].id;
     this.propIds = this.roomPlayers.slice(1).map(p => p.id);
+    if (this.propIds.length === 0 && this.roomPlayers.length >= 2) {
+      this.propIds = [this.roomPlayers[1].id];
+    }
 
-    // Spawn
+    // Spawn players
     this.roomPlayers.forEach((p, i) => {
       const px = 100 + (i * (w - 200)) / Math.max(1, this.roomPlayers.length - 1);
       const py = h / 2;
       const color = Phaser.Display.Color.HexStringToColor(p.color).color;
-      const sprite = this.add.circle(px, py, p.id === this.hunterId ? 16 : 14, color);
+      const isHunter = p.id === this.hunterId;
+      const sprite = this.add.circle(px, py, isHunter ? 16 : 13, color)
+        .setStrokeStyle(isHunter ? 2 : 1, 0xffffff, isHunter ? 0.4 : 0.15)
+        .setDepth(5);
       this.playerSprites.set(p.id, sprite);
 
-      const label = this.add.text(px, py - 26, p.id === this.hunterId ? `🔍 ${p.name}` : p.name, {
-        fontSize: '10px', fontFamily: 'JetBrains Mono', color: '#f0f0f5',
-      }).setOrigin(0.5);
+      const label = this.add.text(px, py - 26, isHunter ? `🔍 ${p.name}` : p.name, {
+        fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#f0f0f5',
+      }).setOrigin(0.5).setDepth(10);
       this.playerLabels.set(p.id, label);
 
       this.transformed.set(p.id, false);
     });
 
-    // Hunter blind screen
-    this.hunterBlind = this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.92).setDepth(100);
-    const blindTxt = this.add.text(w / 2, h / 2, '🔍 Hunter is blindfolded\nProps are hiding...', {
-      fontSize: '20px', fontFamily: 'Syne', color: '#6c63ff', align: 'center',
-    }).setOrigin(0.5).setDepth(101).setName('blindText');
+    // Hunter search radius indicator
+    this.hunterCheckRadius = this.add.circle(0, 0, 50, 0xf87171, 0)
+      .setStrokeStyle(1, 0xf87171, 0).setDepth(4);
 
-    this.statusText = this.add.text(w / 2, 20, 'HIDING PHASE — 30s', {
-      fontSize: '13px', fontFamily: 'JetBrains Mono', color: '#fbbf24',
-    }).setOrigin(0.5);
+    // Hunter blind screen
+    this.hunterBlind = this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.94).setDepth(100);
+    this.hunterBlindText = this.add.text(w / 2, h / 2, '', {
+      fontSize: '18px', fontFamily: 'Syne', color: '#6c63ff', align: 'center',
+    }).setOrigin(0.5).setDepth(101);
+
+    this.statusText = this.add.text(w / 2, 24, '', {
+      fontSize: '12px', fontFamily: 'JetBrains Mono', color: '#fbbf24',
+    }).setOrigin(0.5).setDepth(20);
 
     this.phase = 'hiding';
     this.phaseTimer = 30000;
@@ -98,24 +118,27 @@ export default class PropHuntScene extends Phaser.Scene {
 
     if (this.phase === 'hiding') {
       this.phaseTimer -= delta;
-      this.statusText.setText(`HIDING PHASE — ${Math.ceil(this.phaseTimer / 1000)}s`);
+      const secs = Math.ceil(this.phaseTimer / 1000);
+      this.statusText.setText(`HIDING PHASE — ${secs}s`);
+      this.hunterBlindText.setText(`🔍 Hunter is blindfolded\nProps are hiding...\n\n${secs}s remaining`);
 
       // Props can move and transform
       this.propIds.forEach(id => {
         if (this.eliminated.has(id)) return;
         const inp = this.inputMap[id] || { x: 0, y: 0, buttonA: false, buttonB: false };
         const sprite = this.playerSprites.get(id)!;
-        const speed = 160;
-        sprite.x = Phaser.Math.Clamp(sprite.x + inp.x * speed * dt, 50, w - 50);
-        sprite.y = Phaser.Math.Clamp(sprite.y + inp.y * speed * dt, 50, h - 50);
+        sprite.x = Phaser.Math.Clamp(sprite.x + inp.x * 180 * dt, 55, w - 55);
+        sprite.y = Phaser.Math.Clamp(sprite.y + inp.y * 180 * dt, 55, h - 55);
         this.playerLabels.get(id)?.setPosition(sprite.x, sprite.y - 26);
 
-        // Transform on button B
         if (inp.buttonB && !this.transformed.get(id)) {
           this.transformed.set(id, true);
           sprite.setAlpha(0);
+          playTransform();
           const emoji = PROP_EMOJIS[Math.floor(Math.random() * PROP_EMOJIS.length)];
-          const propText = this.add.text(sprite.x, sprite.y, emoji, { fontSize: '28px' }).setOrigin(0.5);
+          const propText = this.add.text(sprite.x, sprite.y, emoji, {
+            fontSize: `${24 + Math.random() * 8}px`,
+          }).setOrigin(0.5).setDepth(3);
           this.propEmojis.set(id, propText);
           this.playerLabels.get(id)?.setVisible(false);
         }
@@ -125,39 +148,49 @@ export default class PropHuntScene extends Phaser.Scene {
         this.phase = 'seeking';
         this.seekTimer = 90000;
         this.hunterBlind.setVisible(false);
-        const bt = this.children.getByName('blindText') as Phaser.GameObjects.Text;
-        bt?.setVisible(false);
+        this.hunterBlindText.setVisible(false);
         this.statusText.setColor('#f87171');
       }
     } else {
       // Seeking phase
       this.seekTimer -= delta;
       const aliveProps = this.propIds.filter(id => !this.eliminated.has(id));
-      this.statusText.setText(`SEEKING — ${Math.ceil(this.seekTimer / 1000)}s — ${aliveProps.length} props left`);
+      const secs = Math.ceil(this.seekTimer / 1000);
+      this.statusText.setText(`SEEKING — ${secs}s — ${aliveProps.length} prop${aliveProps.length !== 1 ? 's' : ''} remaining`);
 
       // Hunter moves
       const hInp = this.inputMap[this.hunterId] || { x: 0, y: 0, buttonA: false, buttonB: false };
       const hs = this.playerSprites.get(this.hunterId)!;
-      hs.x = Phaser.Math.Clamp(hs.x + hInp.x * 200 * dt, 50, w - 50);
-      hs.y = Phaser.Math.Clamp(hs.y + hInp.y * 200 * dt, 50, h - 50);
+      hs.x = Phaser.Math.Clamp(hs.x + hInp.x * 220 * dt, 55, w - 55);
+      hs.y = Phaser.Math.Clamp(hs.y + hInp.y * 220 * dt, 55, h - 55);
       this.playerLabels.get(this.hunterId)?.setPosition(hs.x, hs.y - 26);
 
-      // Props can waddle slowly
+      // Hunter scan radius visual
+      this.hunterCheckRadius.setPosition(hs.x, hs.y);
+
+      // Props waddle
       this.propIds.forEach(id => {
         if (this.eliminated.has(id)) return;
         const inp = this.inputMap[id] || { x: 0, y: 0 };
         const sprite = this.playerSprites.get(id)!;
-        const spd = this.transformed.get(id) ? 48 : 160;
-        sprite.x = Phaser.Math.Clamp(sprite.x + inp.x * spd * dt, 50, w - 50);
-        sprite.y = Phaser.Math.Clamp(sprite.y + inp.y * spd * dt, 50, h - 50);
+        const spd = this.transformed.get(id) ? 40 : 160;
+        sprite.x = Phaser.Math.Clamp(sprite.x + inp.x * spd * dt, 55, w - 55);
+        sprite.y = Phaser.Math.Clamp(sprite.y + inp.y * spd * dt, 55, h - 55);
         this.playerLabels.get(id)?.setPosition(sprite.x, sprite.y - 26);
         this.propEmojis.get(id)?.setPosition(sprite.x, sprite.y);
       });
 
-      // Hunter checks (button A near prop)
-      const cd = this.checkCooldown.get(this.hunterId) || 0;
-      if (hInp.buttonA && cd <= 0) {
-        this.checkCooldown.set(this.hunterId, 500);
+      // Hunter check
+      this.checkCooldown -= delta;
+      if (hInp.buttonA && this.checkCooldown <= 0) {
+        this.checkCooldown = 600;
+
+        // Scan pulse
+        this.hunterCheckRadius.setStrokeStyle(2, 0xf87171, 0.5);
+        this.hunterCheckRadius.setFillStyle(0xf87171, 0.05);
+        this.scanPulse = 300;
+
+        let foundAny = false;
         this.propIds.forEach(id => {
           if (this.eliminated.has(id)) return;
           const ps = this.playerSprites.get(id)!;
@@ -165,12 +198,34 @@ export default class PropHuntScene extends Phaser.Scene {
           if (dist < 50) {
             this.eliminated.add(id);
             ps.setAlpha(0);
-            this.propEmojis.get(id)?.setAlpha(0.2);
-            this.playerLabels.get(id)?.setText('❌').setVisible(true).setAlpha(0.5);
+            this.propEmojis.get(id)?.setAlpha(0.15);
+            playEliminate();
+            this.cameras.main.shake(100, 0.005);
+            foundAny = true;
+
+            // Elimination effect
+            const fx = this.add.text(ps.x, ps.y, '❌', { fontSize: '28px' }).setOrigin(0.5).setDepth(15);
+            this.tweens.add({ targets: fx, alpha: 0, y: ps.y - 30, duration: 800 });
           }
         });
+
+        if (!foundAny) {
+          // Miss indicator
+          const miss = this.add.text(hs.x, hs.y - 30, 'MISS', {
+            fontSize: '10px', fontFamily: 'JetBrains Mono', color: '#f87171',
+          }).setOrigin(0.5).setDepth(15);
+          this.tweens.add({ targets: miss, alpha: 0, y: hs.y - 50, duration: 600 });
+        }
       }
-      if (cd > 0) this.checkCooldown.set(this.hunterId, cd - delta);
+
+      // Fade scan pulse
+      if (this.scanPulse > 0) {
+        this.scanPulse -= delta;
+        if (this.scanPulse <= 0) {
+          this.hunterCheckRadius.setStrokeStyle(1, 0xf87171, 0);
+          this.hunterCheckRadius.setFillStyle(0xf87171, 0);
+        }
+      }
 
       // Win checks
       if (aliveProps.length === 0) {
@@ -183,11 +238,14 @@ export default class PropHuntScene extends Phaser.Scene {
 
   endGame(winner: string, _side: string) {
     this.finished = true;
+    playVictory();
     const w = Number(this.game.config.width);
     const h = Number(this.game.config.height);
-    this.add.text(w / 2, h / 2, `${winner} win${winner === 'Props' ? '' : 's'}!`, {
-      fontSize: '28px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(200);
+
+    this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.5).setDepth(50);
+    this.add.text(w / 2, h / 2, `${winner} win${winner === 'Props' ? '' : 's'}! 🏆`, {
+      fontSize: '24px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(51);
 
     const scores: Record<string, number> = {};
     this.roomPlayers.forEach(p => { scores[p.name] = this.eliminated.has(p.id) ? 0 : 1; });
