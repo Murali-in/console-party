@@ -128,7 +128,7 @@ export default class ApexArenaScene extends Phaser.Scene {
 
     // Kill target
     this.add.text(w / 2, 16, 'First to 10 kills', {
-      fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#f0f0f5', alpha: 0.3,
+      fontSize: '9px', fontFamily: 'JetBrains Mono', color: 'rgba(240,240,245,0.3)',
     }).setOrigin(0.5, 0).setDepth(20);
   }
 

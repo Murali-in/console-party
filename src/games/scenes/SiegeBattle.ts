@@ -379,7 +379,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
       fontSize: '24px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(51);
     this.add.text(w / 2, h / 2 + 16, `${this.turnCount} turns`, {
-      fontSize: '11px', fontFamily: 'JetBrains Mono', color: '#f0f0f5', alpha: 0.5,
+      fontSize: '11px', fontFamily: 'JetBrains Mono', color: 'rgba(240,240,245,0.5)',
     }).setOrigin(0.5).setDepth(51);
 
     const scores: Record<string, number> = {};
