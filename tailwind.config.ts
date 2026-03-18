@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Space Grotesk', 'sans-serif'],
-        mono: ['DM Mono', 'monospace'],
-        body: ['Space Grotesk', 'sans-serif'],
+        heading: ['Syne', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        body: ['Syne', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -37,6 +37,7 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
         },
         success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -44,6 +45,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          dim: "hsl(var(--accent-dim))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -53,6 +55,8 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: "hsl(var(--bg-surface))",
+        elevated: "hsl(var(--bg-elevated))",
       },
       borderRadius: {
         lg: "var(--radius)",
