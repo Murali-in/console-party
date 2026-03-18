@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -46,6 +47,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
-import { useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
