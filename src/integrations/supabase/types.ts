@@ -56,6 +56,36 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboards: {
+        Row: {
+          game_id: string
+          id: string
+          is_winner: boolean
+          played_at: string
+          player_name: string
+          room_code: string | null
+          score: number
+        }
+        Insert: {
+          game_id: string
+          id?: string
+          is_winner?: boolean
+          played_at?: string
+          player_name: string
+          room_code?: string | null
+          score?: number
+        }
+        Update: {
+          game_id?: string
+          id?: string
+          is_winner?: boolean
+          played_at?: string
+          player_name?: string
+          room_code?: string | null
+          score?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

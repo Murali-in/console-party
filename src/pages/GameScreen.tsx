@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { startGame, destroyGame, updateInput, inputMap } from '@/games/GameManager';
+import { startMusic, stopMusic, toggleMute, getIsMuted } from '@/games/MusicManager';
+import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface LocationState {
@@ -22,9 +24,29 @@ export default function GameScreen() {
   const [scores, setScores] = useState<Record<string, number>>({});
   const keysRef = useRef<Set<string>>(new Set());
   const [soloControllerUrl, setSoloControllerUrl] = useState('');
+  const [muted, setMuted] = useState(getIsMuted());
+  const scoresSavedRef = useRef(false);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
+
+  const saveScores = useCallback(async (gameId: string, rc: string, w: string, s: Record<string, number>) => {
+    if (scoresSavedRef.current) return;
+    scoresSavedRef.current = true;
+    const entries = Object.entries(s).map(([name, score]) => ({
+      game_id: gameId,
+      player_name: name,
+      score,
+      is_winner: name === w,
+      room_code: rc,
+    }));
+    await supabase.from('leaderboards').insert(entries);
+  }, []);
+
+  const handleToggleMute = () => {
+    const nowMuted = toggleMute();
+    setMuted(nowMuted);
+  };
 
   useEffect(() => {
     if (!roomCode || !state) {
@@ -32,13 +54,18 @@ export default function GameScreen() {
       return;
     }
 
+    // Start background music
+    startMusic();
+
     const onGameOver = (w: string, s: Record<string, number>) => {
       setGameOver(true);
       setWinner(w);
       setScores(s);
+      stopMusic();
+      saveScores(state.gameId, roomCode, w, s);
     };
 
-    // Solo phone-controller mode: host listens for phone input via realtime
+    // Solo phone-controller mode
     if (state.soloPhone) {
       const p1Id = state.players[0]?.id;
       const controllerUrl = `${window.location.origin}/play/controller/${roomCode}?name=${encodeURIComponent(state.players[0]?.name || 'Player')}&solo=1`;
@@ -48,7 +75,6 @@ export default function GameScreen() {
         onPlayerJoined: () => {},
         onPlayerLeft: () => {},
         onInputUpdate: (input) => {
-          // Map the phone controller input to player 1
           updateInput({ ...input, playerId: p1Id, playerIndex: 0 });
         },
       });
@@ -60,21 +86,14 @@ export default function GameScreen() {
         if (!p2Id) return;
         const t = Date.now() / 1000;
         let cx = 0, cy = 0, ba = false, bb = false;
-
         switch (state.gameId) {
-          case 'snake-battle': {
-            const phase = Math.floor(t * 0.8) % 4;
-            cx = [1, 0, -1, 0][phase]; cy = [0, 1, 0, -1][phase]; break;
-          }
+          case 'snake-battle': { const phase = Math.floor(t * 0.8) % 4; cx = [1, 0, -1, 0][phase]; cy = [0, 1, 0, -1][phase]; break; }
           case 'pong': cy = Math.sin(t * 2) * 0.5; break;
           case 'nitro-race': cy = -0.8; cx = Math.sin(t * 0.6) * 0.7; break;
           case 'tank-battle': cx = Math.sin(t * 0.5) * 0.6; cy = Math.cos(t * 0.4) * -0.5; ba = Math.sin(t * 2.5) > 0.5; break;
           case 'platform-fighter': cx = Math.sin(t * 0.8) * 0.7; ba = Math.sin(t * 2) > 0.3; bb = Math.sin(t * 1.2) > 0.8; break;
           case 'maze-runner': cx = Math.sin(t * 0.5); cy = Math.cos(t * 0.4); break;
-          case 'trivia-clash': {
-            if (Math.sin(t * 0.3) > 0.7) { cy = -1; } else if (Math.sin(t * 0.5) > 0.5) { cx = 1; }
-            break;
-          }
+          case 'trivia-clash': if (Math.sin(t * 0.3) > 0.7) cy = -1; break;
           default: cx = Math.sin(t * 0.7) * 0.6; cy = Math.cos(t * 0.5) * 0.6; ba = Math.sin(t * 3) > 0.7;
         }
         updateInput({ playerId: p2Id, playerIndex: 1, x: cx, y: cy, buttonA: ba, buttonB: bb });
@@ -84,12 +103,7 @@ export default function GameScreen() {
         startGame({ gameId: state.gameId, containerId: 'game-container', players: state.players, onGameOver }).catch(console.error);
       }, 300);
 
-      return () => {
-        clearTimeout(timer);
-        clearInterval(cpuLoop);
-        destroyGame();
-        if (channelRef.current) leaveRoom(channelRef.current);
-      };
+      return () => { clearTimeout(timer); clearInterval(cpuLoop); destroyGame(); stopMusic(); if (channelRef.current) leaveRoom(channelRef.current); };
     }
 
     // Demo mode: keyboard controls
@@ -103,7 +117,6 @@ export default function GameScreen() {
         const keys = keysRef.current;
         const p1Id = state.players[0]?.id;
         const p2Id = state.players[1]?.id;
-
         if (p1Id) {
           let x = 0, y = 0;
           if (keys.has('a') || keys.has('arrowleft')) x = -1;
@@ -114,7 +127,6 @@ export default function GameScreen() {
           if (len > 1) { x /= len; y /= len; }
           updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: keys.has(' ') || keys.has('j'), buttonB: keys.has('shift') || keys.has('k') });
         }
-
         if (p2Id) {
           const t = Date.now() / 1000;
           let cx = 0, cy = 0, ba = false, bb = false;
@@ -136,13 +148,7 @@ export default function GameScreen() {
         startGame({ gameId: state.gameId, containerId: 'game-container', players: state.players, onGameOver }).catch(console.error);
       }, 300);
 
-      return () => {
-        clearTimeout(timer);
-        clearInterval(inputLoop);
-        destroyGame();
-        window.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('keyup', onKeyUp);
-      };
+      return () => { clearTimeout(timer); clearInterval(inputLoop); destroyGame(); stopMusic(); window.removeEventListener('keydown', onKeyDown); window.removeEventListener('keyup', onKeyUp); };
     }
 
     // Normal multiplayer mode
@@ -163,11 +169,7 @@ export default function GameScreen() {
       }).catch(console.error);
     }, 300);
 
-    return () => {
-      clearTimeout(timer);
-      destroyGame();
-      if (channelRef.current) leaveRoom(channelRef.current);
-    };
+    return () => { clearTimeout(timer); destroyGame(); stopMusic(); if (channelRef.current) leaveRoom(channelRef.current); };
   }, [roomCode]);
 
   const handleBackToLobby = () => {
@@ -181,17 +183,25 @@ export default function GameScreen() {
     <div className="h-screen w-screen bg-background flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <span className="font-mono text-xs text-muted-foreground">
-          {state.demo ? 'Demo · Keyboard' : state.soloPhone ? 'Solo · Phone Controller' : `Room ${roomCode}`} · {state.players.length}P
+          {state.demo ? 'Demo · Keyboard' : state.soloPhone ? 'Solo · Phone' : `Room ${roomCode}`} · {state.players.length}P
         </span>
         <span className="font-heading text-sm font-semibold text-foreground">
           {state.gameId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
         </span>
-        <button onClick={handleBackToLobby} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono">
-          ← Back
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleToggleMute}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono flex items-center gap-1"
+            title={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
+          <button onClick={handleBackToLobby} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono">
+            ← Back
+          </button>
+        </div>
       </div>
 
-      {/* Solo phone controller QR prompt */}
       {state.soloPhone && !gameOver && soloControllerUrl && (
         <div className="flex items-center justify-center gap-4 py-1.5 border-b border-border bg-card">
           <span className="text-[10px] font-mono text-muted-foreground">
@@ -219,6 +229,7 @@ export default function GameScreen() {
                   <p key={name} className="font-mono text-sm text-muted-foreground">{name}: {score}</p>
                 ))}
               </div>
+              <p className="text-[10px] text-muted-foreground font-mono">Scores saved to leaderboard</p>
               <button onClick={handleBackToLobby} className="bg-primary text-primary-foreground font-medium px-6 py-2 rounded-lg text-sm hover:opacity-90 transition-opacity">
                 Back to Lobby
               </button>
