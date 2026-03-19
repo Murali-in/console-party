@@ -136,7 +136,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-10 justify-center">
             {[
-              { val: '6', label: 'games' },
+              { val: '9', label: 'games' },
               { val: '2–4', label: 'players' },
               { val: '0', label: 'downloads' },
             ].map(stat => (

@@ -16,7 +16,7 @@ const BUILT_IN_GAMES = [
   { id: 'trivia-clash', title: 'Trivia Clash', description: '10 rounds of rapid-fire trivia. Point your joystick to answer.', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-trivia-clash' },
 ];
 
-const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Community'];
+const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'Community'];
 
 interface CommunityGame {
   id: string;
