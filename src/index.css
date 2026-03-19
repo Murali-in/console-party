@@ -101,69 +101,110 @@
     z-index: 2;
   }
 
-  /* Game cover CSS placeholders */
-  .cover-bomb-pass {
-    background: linear-gradient(135deg, #1a0505, #2d0a0a);
+  /* ── Procedural game covers (no emojis) ── */
+
+  /* Bomb Arena: dark red with concentric ring explosions */
+  .cover-bomb-arena {
+    background: #130506;
     position: relative;
+    overflow: hidden;
   }
-  .cover-bomb-pass::after {
-    content: '💣';
+  .cover-bomb-arena::before {
+    content: '';
     position: absolute;
-    font-size: 48px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 20px rgba(248,113,113,0.6));
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 30%, rgba(248,113,113,0.08) 32%, transparent 34%),
+      radial-gradient(circle at 50% 50%, transparent 45%, rgba(248,113,113,0.06) 47%, transparent 49%),
+      radial-gradient(circle at 50% 50%, transparent 60%, rgba(248,113,113,0.04) 62%, transparent 64%),
+      radial-gradient(circle at 40% 60%, rgba(248,113,113,0.12) 0%, transparent 40%);
   }
 
+  /* Nitro Race: dark teal with speed lines */
   .cover-nitro-race {
-    background: linear-gradient(135deg, #050a1a, #0a1a2d);
+    background: #04080f;
     position: relative;
+    overflow: hidden;
   }
-  .cover-nitro-race::after {
-    content: '🏎️';
+  .cover-nitro-race::before {
+    content: '';
     position: absolute;
-    font-size: 48px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 20px rgba(52,211,153,0.6));
+    inset: 0;
+    background:
+      linear-gradient(175deg, transparent 20%, rgba(52,211,153,0.06) 20.5%, transparent 21%),
+      linear-gradient(175deg, transparent 35%, rgba(52,211,153,0.04) 35.5%, transparent 36%),
+      linear-gradient(175deg, transparent 50%, rgba(52,211,153,0.06) 50.5%, transparent 51%),
+      linear-gradient(175deg, transparent 65%, rgba(52,211,153,0.03) 65.5%, transparent 66%),
+      linear-gradient(175deg, transparent 80%, rgba(52,211,153,0.05) 80.5%, transparent 81%),
+      radial-gradient(ellipse at 70% 40%, rgba(52,211,153,0.1) 0%, transparent 50%);
   }
 
+  /* Apex Arena: dark green with crosshair */
   .cover-apex-arena {
-    background: linear-gradient(135deg, #0a0f0a, #0a1f0a);
+    background: #030b05;
     position: relative;
+    overflow: hidden;
   }
-  .cover-apex-arena::after {
-    content: '🔫';
+  .cover-apex-arena::before {
+    content: '';
     position: absolute;
-    font-size: 48px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 20px rgba(108,99,255,0.6));
+    inset: 0;
+    background:
+      linear-gradient(0deg, transparent 49%, rgba(107,95,255,0.1) 49.5%, rgba(107,95,255,0.1) 50.5%, transparent 51%),
+      linear-gradient(90deg, transparent 49%, rgba(107,95,255,0.1) 49.5%, rgba(107,95,255,0.1) 50.5%, transparent 51%),
+      radial-gradient(circle at 50% 50%, transparent 8%, rgba(107,95,255,0.08) 8.5%, transparent 9.5%),
+      radial-gradient(circle at 50% 50%, transparent 15%, rgba(107,95,255,0.05) 15.5%, transparent 16.5%);
   }
 
-  .cover-prop-hunt {
-    background: linear-gradient(135deg, #120a00, #1f1500);
+  /* Pong: dark with white court lines */
+  .cover-pong {
+    background: #050505;
     position: relative;
+    overflow: hidden;
   }
-  .cover-prop-hunt::after {
-    content: '👀';
+  .cover-pong::before {
+    content: '';
     position: absolute;
-    font-size: 48px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 20px rgba(251,191,36,0.6));
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,0.08) 49.5%, rgba(255,255,255,0.08) 50.5%, transparent 50.5%),
+      linear-gradient(0deg, transparent 10%, rgba(255,255,255,0.05) 10%, rgba(255,255,255,0.05) 10.5%, transparent 10.5%),
+      linear-gradient(0deg, transparent 89.5%, rgba(255,255,255,0.05) 89.5%, rgba(255,255,255,0.05) 90%, transparent 90%),
+      linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.06) 5%, rgba(255,255,255,0.06) 5.5%, transparent 5.5%),
+      linear-gradient(90deg, transparent 94.5%, rgba(255,255,255,0.06) 94.5%, rgba(255,255,255,0.06) 95%, transparent 95%);
   }
 
-  .cover-siege-battle {
-    background: linear-gradient(135deg, #0f0d0a, #1a1510);
+  /* Tank Battle: purple grid */
+  .cover-tank-battle {
+    background: #080509;
     position: relative;
+    overflow: hidden;
   }
-  .cover-siege-battle::after {
-    content: '🏰';
+  .cover-tank-battle::before {
+    content: '';
     position: absolute;
-    font-size: 48px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 20px rgba(168,162,158,0.6));
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent 0px, transparent 39px, rgba(107,95,255,0.06) 39px, rgba(107,95,255,0.06) 40px),
+      repeating-linear-gradient(90deg, transparent 0px, transparent 39px, rgba(107,95,255,0.06) 39px, rgba(107,95,255,0.06) 40px),
+      radial-gradient(circle at 30% 50%, rgba(107,95,255,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 70% 50%, rgba(107,95,255,0.06) 0%, transparent 35%);
+  }
+
+  /* Snake Battle: green grid dots */
+  .cover-snake-battle {
+    background: #030f05;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover-snake-battle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(52,211,153,0.03) 1px, transparent 1px),
+      radial-gradient(circle at 25% 30%, rgba(52,211,153,0.15) 0%, transparent 30%),
+      radial-gradient(circle at 60% 70%, rgba(52,211,153,0.1) 0%, transparent 25%);
+    background-size: 12px 12px, 100% 100%, 100% 100%;
   }
 }

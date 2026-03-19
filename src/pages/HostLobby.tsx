@@ -8,20 +8,13 @@ import { playCountdownBeep, playReady } from '@/games/SoundFX';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-pass', title: 'Bomb Pass', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, desc: 'Hot potato meets battle royale. Pass the bomb before it explodes!' },
-  { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, desc: 'Top-down arcade racing with nitro boosts. 3 laps to victory.' },
-  { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, desc: 'Top-down arena shooter. First to 10 kills wins.' },
-  { id: 'prop-hunt', title: 'Prop Hunt', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, desc: 'Hide as objects, seek and destroy. Classic hide & seek.' },
-  { id: 'siege-battle', title: 'Siege Battle', genre: 'Strategy', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, desc: 'Physics-based siege warfare. Destroy the enemy tower.' },
+  { id: 'bomb-arena', title: 'Bomb Arena', genre: 'Party', minPlayers: 2, maxPlayers: 4, desc: 'Hot potato meets battle royale. Pass the bomb before it explodes!', coverClass: 'cover-bomb-arena' },
+  { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', coverClass: 'cover-nitro-race' },
+  { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arena shooter. First to 10 kills wins.', coverClass: 'cover-apex-arena' },
+  { id: 'pong', title: 'Pong', genre: 'Classic', minPlayers: 2, maxPlayers: 2, desc: 'Classic 2-player pong. First to 7 points wins.', coverClass: 'cover-pong' },
+  { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', minPlayers: 2, maxPlayers: 4, desc: 'Drive, aim, and shoot. Last tank standing wins.', coverClass: 'cover-tank-battle' },
+  { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, desc: 'Multiplayer snake on a shared grid. Last snake alive wins.', coverClass: 'cover-snake-battle' },
 ];
-
-const COVER_CLASSES: Record<string, string> = {
-  'bomb-pass': 'cover-bomb-pass',
-  'nitro-race': 'cover-nitro-race',
-  'apex-arena': 'cover-apex-arena',
-  'prop-hunt': 'cover-prop-hunt',
-  'siege-battle': 'cover-siege-battle',
-};
 
 export default function HostLobby() {
   const navigate = useNavigate();
@@ -41,9 +34,7 @@ export default function HostLobby() {
       onPlayerJoined: (p) => setPlayers([...p]),
       onPlayerLeft: () => {},
       onInputUpdate: () => {},
-      onPlayerReady: (_pid, _ready) => {
-        playReady();
-      },
+      onPlayerReady: () => playReady(),
     });
 
     channelRef.current = channel;
@@ -59,16 +50,9 @@ export default function HostLobby() {
   const handleStartGame = useCallback(() => {
     if (!selectedGame || !allReady) return;
 
-    // Start 3-2-1 countdown
     setCountdown(3);
     playCountdownBeep(false);
-
-    // Broadcast countdown to controllers
-    channelRef.current?.send({
-      type: 'broadcast',
-      event: 'countdown',
-      payload: { count: 3 },
-    });
+    channelRef.current?.send({ type: 'broadcast', event: 'countdown', payload: { count: 3 } });
 
     let count = 3;
     countdownRef.current = setInterval(() => {
@@ -76,39 +60,21 @@ export default function HostLobby() {
       if (count > 0) {
         setCountdown(count);
         playCountdownBeep(false);
-        channelRef.current?.send({
-          type: 'broadcast',
-          event: 'countdown',
-          payload: { count },
-        });
+        channelRef.current?.send({ type: 'broadcast', event: 'countdown', payload: { count } });
       } else {
-        // GO!
         setCountdown(0);
         playCountdownBeep(true);
-        channelRef.current?.send({
-          type: 'broadcast',
-          event: 'countdown',
-          payload: { count: 0 },
-        });
-
+        channelRef.current?.send({ type: 'broadcast', event: 'countdown', payload: { count: 0 } });
         if (countdownRef.current) clearInterval(countdownRef.current);
 
-        // Store game state and navigate
         sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-          gameId: selectedGame,
-          players,
-          roomCode,
+          gameId: selectedGame, players, roomCode,
         }));
-
         channelRef.current?.send({
-          type: 'broadcast',
-          event: 'game-started',
+          type: 'broadcast', event: 'game-started',
           payload: { gameId: selectedGame, players },
         });
-
-        setTimeout(() => {
-          navigate(`/play/game/${roomCode}`);
-        }, 600);
+        setTimeout(() => navigate(`/play/game/${roomCode}`), 600);
       }
     }, 1000);
   }, [selectedGame, allReady, players, roomCode, navigate]);
@@ -119,7 +85,6 @@ export default function HostLobby() {
     <div className="min-h-screen bg-background relative">
       <Navbar />
 
-      {/* Countdown overlay */}
       {countdown !== null && (
         <div className="fixed inset-0 z-[100] bg-background/90 flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -139,21 +104,18 @@ export default function HostLobby() {
           <div className="space-y-8">
             <QRDisplay roomCode={roomCode} />
 
-            <div className="p-4 rounded-lg border border-border bg-card space-y-2">
+            <div className="p-4 rounded-[10px] border border-border bg-card space-y-2">
               <h4 className="font-heading text-xs font-semibold text-muted-foreground uppercase tracking-wider">How players join</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Players open their phone browser and scan the QR code or visit the URL.
                 Works over any internet connection — same Wi-Fi not required.
-                No app download needed. Players must tap "Ready" before the game starts.
               </p>
             </div>
 
             <div className="space-y-3">
               <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Players ({players.length}/4)
-                {allReady && (
-                  <span className="ml-2 text-success">· All ready!</span>
-                )}
+                {allReady && <span className="ml-2 text-success">· All ready!</span>}
               </h3>
               {[0, 1, 2, 3].map(i => (
                 <PlayerSlot key={i} index={i} player={players[i]} />
@@ -168,19 +130,17 @@ export default function HostLobby() {
               {BUILT_IN_GAMES.map(game => (
                 <div
                   key={game.id}
-                  className={`cursor-pointer rounded-lg border transition-all duration-150 ${
+                  className={`cursor-pointer rounded-[10px] border transition-all duration-150 ${
                     selectedGame === game.id
                       ? 'border-primary bg-accent-dim'
                       : 'border-border hover:border-primary/30'
                   }`}
                   onClick={() => setSelectedGame(game.id)}
                 >
-                  <div className={`aspect-video relative rounded-t-lg ${COVER_CLASSES[game.id] || ''}`} />
+                  <div className={`aspect-video relative rounded-t-[10px] overflow-hidden ${game.coverClass}`} />
                   <div className="p-3 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary">
-                        Official
-                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary">Official</span>
                       <span className="text-[10px] font-mono text-muted-foreground">{game.genre}</span>
                     </div>
                     <h3 className="font-heading font-semibold text-sm text-foreground">{game.title}</h3>
@@ -191,7 +151,7 @@ export default function HostLobby() {
             </div>
 
             {selectedGameData && (
-              <div className="p-4 rounded-lg border border-primary/20 bg-card space-y-2">
+              <div className="p-4 rounded-[10px] border border-primary/20 bg-card space-y-2">
                 <h3 className="font-heading font-semibold text-foreground">{selectedGameData.title}</h3>
                 <p className="text-xs text-muted-foreground">{selectedGameData.desc}</p>
               </div>
@@ -200,12 +160,12 @@ export default function HostLobby() {
             <button
               onClick={handleStartGame}
               disabled={!selectedGame || !allReady || countdown !== null}
-              className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30 disabled:cursor-not-allowed h-11"
             >
               {players.length < 2
                 ? `Waiting for players (${players.length}/2 minimum)`
                 : !allReady
-                  ? `Waiting for all players to ready up`
+                  ? 'Waiting for all players to ready up'
                   : `Start ${selectedGameData?.title || 'Game'} →`}
             </button>
           </div>

@@ -5,14 +5,15 @@ import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-pass', title: 'Bomb Pass', description: 'Hot potato meets battle royale. Pass the bomb before it explodes!', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const },
-  { id: 'nitro-race', title: 'Nitro Race', description: 'Top-down arcade racing with nitro boosts and obstacles.', genre: 'Racing', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const },
-  { id: 'apex-arena', title: 'Apex Arena', description: 'Top-down competitive shooter. First to 10 kills wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const },
-  { id: 'prop-hunt', title: 'Prop Hunt', description: 'Hide as objects or seek and destroy. Classic party fun.', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const },
-  { id: 'siege-battle', title: 'Siege Battle', description: 'Physics-based turn-based siege warfare.', genre: 'Strategy', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const },
+  { id: 'bomb-arena', title: 'Bomb Arena', description: 'Hot potato meets battle royale. Pass the bomb before it explodes!', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-bomb-arena' },
+  { id: 'nitro-race', title: 'Nitro Race', description: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', genre: 'Racing', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-nitro-race' },
+  { id: 'apex-arena', title: 'Apex Arena', description: 'Top-down competitive shooter. First to 10 kills wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-apex-arena' },
+  { id: 'pong', title: 'Pong', description: 'Classic 2-player pong. First to 7 points wins.', genre: 'Classic', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, coverClass: 'cover-pong' },
+  { id: 'tank-battle', title: 'Tank Battle', description: 'Drive, aim, and shoot. Last tank standing wins.', genre: 'Combat', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-tank-battle' },
+  { id: 'snake-battle', title: 'Snake Battle', description: 'Multiplayer snake on a shared grid. Last snake alive wins.', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-snake-battle' },
 ];
 
-const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Strategy', 'Puzzle', 'Community'];
+const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Community'];
 
 interface CommunityGame {
   id: string;
@@ -48,8 +49,9 @@ export default function GameLibrary() {
       max_players: g.maxPlayers,
       cover_image_url: null,
       game_type: g.gameType,
+      coverClass: g.coverClass,
     })),
-    ...communityGames,
+    ...communityGames.map(g => ({ ...g, coverClass: undefined })),
   ];
 
   const filtered = filter === 'All'
@@ -70,7 +72,7 @@ export default function GameLibrary() {
             <button
               key={genre}
               onClick={() => setFilter(genre)}
-              className={`px-4 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+              className={`px-4 py-1.5 text-sm rounded-lg font-heading font-medium transition-colors ${
                 filter === genre
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-muted'
@@ -82,7 +84,7 @@ export default function GameLibrary() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {filtered.map(game => (
             <GameCard
               key={game.id}
@@ -91,6 +93,7 @@ export default function GameLibrary() {
               minPlayers={game.min_players}
               maxPlayers={game.max_players}
               coverUrl={game.cover_image_url ?? undefined}
+              coverClass={game.coverClass}
               gameType={game.game_type as 'official' | 'community'}
             />
           ))}

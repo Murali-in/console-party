@@ -2,17 +2,18 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-const BUILT_IN_GAMES = [
-  { id: 'bomb-pass', title: 'Bomb Pass', genre: 'Party', players: '2–4', coverClass: 'cover-bomb-pass' },
+const GAMES = [
+  { id: 'bomb-arena', title: 'Bomb Arena', genre: 'Party', players: '2–4', coverClass: 'cover-bomb-arena' },
   { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', players: '2–4', coverClass: 'cover-nitro-race' },
   { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', players: '2–4', coverClass: 'cover-apex-arena' },
-  { id: 'prop-hunt', title: 'Prop Hunt', genre: 'Party', players: '2–4', coverClass: 'cover-prop-hunt' },
-  { id: 'siege-battle', title: 'Siege Battle', genre: 'Strategy', players: '2', coverClass: 'cover-siege-battle' },
+  { id: 'pong', title: 'Pong', genre: 'Classic', players: '2', coverClass: 'cover-pong' },
+  { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', players: '2–4', coverClass: 'cover-tank-battle' },
+  { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', players: '2–4', coverClass: 'cover-snake-battle' },
 ];
 
 const STEPS = [
   { num: '01', title: 'Open on any screen', desc: 'Load Eternity on your TV, laptop, or PC browser. No installs. Just open the site.' },
-  { num: '02', title: 'Players scan QR', desc: 'Each player opens the QR code on their phone. Works over any connection — same Wi-Fi not required.' },
+  { num: '02', title: 'Players scan QR', desc: 'Each player scans the QR code on their phone. Works over any connection — same Wi-Fi not required.' },
   { num: '03', title: 'Play instantly', desc: 'Phones become controllers. No pairing. No apps. The game starts immediately.' },
 ];
 
@@ -30,25 +31,25 @@ export default function Landing() {
             <span className="font-mono text-[10px] text-primary tracking-[0.2em] uppercase">
               ∞ Eternity Console
             </span>
-            <h1 className="font-heading text-[clamp(36px,5.2vw,52px)] font-extrabold leading-[1.08] tracking-tight text-foreground">
+            <h1 className="font-heading text-[clamp(36px,5.2vw,56px)] font-extrabold leading-[1.05] tracking-tight text-foreground">
               Your screen.<br />
               Their phones.<br />
               <span className="text-muted-foreground">One game.</span>
             </h1>
-            <p className="text-[15px] text-muted-foreground max-w-[440px] leading-relaxed">
-              No downloads. No hardware. Open the room on any screen —
-              players join from their phone and control the game instantly.
+            <p className="text-[15px] text-muted-foreground max-w-[420px] leading-relaxed font-body">
+              No downloads. No pairing. Open on any screen, scan the QR,
+              and play instantly. Works over any network.
             </p>
             <div className="flex items-center gap-3 pt-4">
               <Link
                 to="/play"
-                className="bg-primary text-background font-heading font-semibold px-7 py-2.5 rounded-lg hover:opacity-90 transition-opacity text-sm h-10 inline-flex items-center"
+                className="bg-primary text-background font-heading font-semibold px-7 rounded-lg hover:opacity-90 transition-opacity text-sm h-11 inline-flex items-center"
               >
                 Start a game
               </Link>
               <Link
                 to="/games"
-                className="border border-border text-foreground font-heading font-medium px-7 py-2.5 rounded-lg hover:bg-secondary transition-colors text-sm h-10 inline-flex items-center"
+                className="border border-border text-foreground font-heading font-semibold px-7 rounded-lg hover:border-primary/30 transition-colors text-sm h-11 inline-flex items-center"
               >
                 Browse games
               </Link>
@@ -84,11 +85,11 @@ export default function Landing() {
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">Games</span>
-            <span className="font-mono text-[11px] text-muted-foreground">{BUILT_IN_GAMES.length} available</span>
+            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">Game library</span>
+            <span className="font-mono text-[11px] text-muted-foreground">{GAMES.length} games</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {BUILT_IN_GAMES.map((game) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {GAMES.map((game) => (
               <div
                 key={game.id}
                 className="group rounded-[10px] border border-border overflow-hidden hover:border-primary/30 transition-colors duration-150 bg-card"
@@ -119,23 +120,19 @@ export default function Landing() {
           <div className="space-y-5">
             <h2 className="font-heading text-[28px] font-bold text-foreground leading-tight">A growing platform.</h2>
             <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Submit your game. Real players. Zero friction.
-            </p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Have a browser multiplayer game? Submit it. Once reviewed and
-              approved by our team, it goes live to all Eternity players with
-              a Community badge and your name as creator.
+              Submit your game. Once reviewed, it goes live to all Eternity players
+              with a Community badge. Real players, zero friction.
             </p>
             <Link
               to="/contribute"
-              className="inline-flex items-center gap-2 text-foreground text-sm font-heading font-medium hover:text-primary transition-colors duration-150 border border-border rounded-lg px-5 py-2 mt-2"
+              className="inline-flex items-center gap-2 text-foreground text-sm font-heading font-semibold hover:text-primary transition-colors duration-150 border border-border rounded-lg px-5 py-2 mt-2"
             >
               Submit your game →
             </Link>
           </div>
           <div className="flex items-center gap-10 justify-center">
             {[
-              { val: '5', label: 'games' },
+              { val: '6', label: 'games' },
               { val: '2–4', label: 'players' },
               { val: '0', label: 'downloads' },
             ].map(stat => (
