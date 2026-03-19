@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playCoinCollect, playExitReached } from '@/games/SoundFX';
 
 interface MazeConfig {
   players: RoomPlayer[];
