@@ -222,6 +222,7 @@ export default class MazeRunnerScene extends Phaser.Scene {
       if (this.coins.has(key)) {
         this.coins.delete(key);
         mp.score++;
+        playCoinCollect();
       }
 
       // Reach exit
