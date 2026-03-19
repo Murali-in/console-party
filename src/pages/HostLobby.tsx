@@ -8,7 +8,7 @@ import { playCountdownBeep, playReady } from '@/games/SoundFX';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Arena', genre: 'Party', minPlayers: 2, maxPlayers: 4, desc: 'Hot potato meets battle royale. Pass the bomb before it explodes!', coverClass: 'cover-bomb-arena' },
+  { id: 'bomb-arena', title: 'Bomb Pass', genre: 'Party', minPlayers: 2, maxPlayers: 4, desc: 'Hot potato meets survival. Pass the bomb before it blows.', coverClass: 'cover-bomb-arena' },
   { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', coverClass: 'cover-nitro-race' },
   { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arena shooter. First to 10 kills wins.', coverClass: 'cover-apex-arena' },
   { id: 'pong', title: 'Pong', genre: 'Classic', minPlayers: 2, maxPlayers: 2, desc: 'Classic 2-player pong. First to 7 points wins.', coverClass: 'cover-pong' },

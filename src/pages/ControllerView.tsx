@@ -1,12 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useRealtime, type RoomPlayer, type PlayerInput } from '@/contexts/RealtimeContext';
-import VirtualJoystick from '@/components/VirtualJoystick';
-import ActionButton from '@/components/ActionButton';
+import { useRealtime, type PlayerInput, type RoomPlayer } from '@/contexts/RealtimeContext';
 import { playCountdownBeep, playReady } from '@/games/SoundFX';
 import { requestWakeLock, releaseWakeLock } from '@/lib/wakeLock';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-
 import ControllerLobby from '@/components/controller/ControllerLobby';
 import ControllerGamepad from '@/components/controller/ControllerGamepad';
 
@@ -33,58 +30,74 @@ export default function ControllerView() {
   useEffect(() => {
     if (!roomCode) return;
 
-    // Request wake lock to prevent screen sleep
     requestWakeLock();
 
-    // Restore from sessionStorage for reconnection
-    const savedName = sessionStorage.getItem(`player-name-${roomCode}`);
-    const playerName = savedName || `Player ${Math.floor(Math.random() * 1000)}`;
-    if (!savedName) sessionStorage.setItem(`player-name-${roomCode}`, playerName);
+    const params = new URLSearchParams(window.location.search);
+    const requestedName = params.get('name')?.trim();
+    const nameKey = `player-name-${roomCode}`;
+    const idKey = `player-id-${roomCode}`;
+    const savedName = sessionStorage.getItem(nameKey);
+    const playerName = (requestedName || savedName || 'Player').slice(0, 20);
+    const playerId = sessionStorage.getItem(idKey) || crypto.randomUUID();
 
-    const channel = joinRoom(roomCode, playerName, {
-      onPlayerJoined: (p) => {
-        const me = p.find(pl => pl.name === playerName);
-        if (me) {
-          setPlayerInfo(me);
-          inputRef.current.playerId = me.id;
-          inputRef.current.playerIndex = me.index;
-          setConnected(true);
-          setConnectionStatus('connected');
-          sessionStorage.setItem(`player-id-${roomCode}`, me.id);
-        }
+    sessionStorage.setItem(nameKey, playerName);
+    sessionStorage.setItem(idKey, playerId);
+
+    const channel = joinRoom(
+      roomCode,
+      playerName,
+      {
+        onPlayerJoined: (players) => {
+          const me = players.find((player) => player.id === playerId);
+          if (me) {
+            setPlayerInfo(me);
+            inputRef.current.playerId = me.id;
+            inputRef.current.playerIndex = me.index;
+            setConnected(true);
+            setConnectionStatus('connected');
+            return;
+          }
+
+          setPlayerInfo((current) => {
+            if (!current) return current;
+            return players.find((player) => player.id === current.id) ?? current;
+          });
+        },
+        onGameStarted: (gid) => {
+          setGameStarted(true);
+          setGameId(gid);
+          setCountdown(null);
+        },
+        onGameEvent: () => {},
+        onGameOver: () => {
+          setGameStarted(false);
+          setGameId(null);
+          setIsReady(false);
+        },
+        onCountdown: (count) => {
+          setCountdown(count);
+          playCountdownBeep(count === 0);
+        },
       },
-      onGameStarted: (gid) => {
-        setGameStarted(true);
-        setGameId(gid);
-        setCountdown(null);
-      },
-      onGameEvent: () => {},
-      onGameOver: () => {
-        setGameStarted(false);
-        setGameId(null);
-        setIsReady(false);
-      },
-      onCountdown: (count) => {
-        setCountdown(count);
-        playCountdownBeep(count === 0);
-      },
-    });
+      playerId,
+    );
 
     channelRef.current = channel;
 
-    // Online/offline handlers for reconnection awareness
     const handleOffline = () => setConnectionStatus('reconnecting');
     const handleOnline = () => setConnectionStatus('connected');
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
 
     return () => {
-      if (channelRef.current) leaveRoom(channelRef.current);
+      if (channelRef.current) {
+        leaveRoom(channelRef.current, inputRef.current.playerId || playerId);
+      }
       releaseWakeLock();
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };
-  }, [roomCode]);
+  }, [joinRoom, leaveRoom, roomCode]);
 
   const emitInput = useCallback(() => {
     if (channelRef.current) {
@@ -109,10 +122,10 @@ export default function ControllerView() {
 
   if (!connected) {
     return (
-      <div className="h-screen bg-background flex items-center justify-center px-6">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-muted-foreground font-mono">Connecting to room {roomCode}...</p>
+      <div className="flex h-screen items-center justify-center bg-background px-6">
+        <div className="space-y-4 text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="font-mono text-xs text-muted-foreground">Connecting to room {roomCode}...</p>
         </div>
       </div>
     );

@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
+import BrandLogo from '@/components/BrandLogo';
 
-export default function Navbar() {
+const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
@@ -14,31 +15,33 @@ export default function Navbar() {
   const isLanding = location.pathname === '/';
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 h-[60px] ${
-      scrolled || !isLanding ? 'bg-surface border-b border-border' : 'bg-transparent'
-    }`}>
-      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-1.5">
-          <span className="text-primary font-heading font-bold text-lg">∞</span>
-          <span className="font-heading font-bold text-[15px] tracking-tight text-foreground">Eternity</span>
+    <nav
+      ref={ref}
+      className={`fixed top-0 left-0 right-0 z-50 h-[60px] transition-all duration-200 ${
+        scrolled || !isLanding ? 'border-b border-border bg-surface' : 'bg-transparent'
+      }`}
+    >
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
+        <Link to="/" aria-label="Eternity Console home">
+          <BrandLogo compact className="shrink-0" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/games" className="text-xs text-muted-foreground hover:text-foreground transition-colors font-heading font-medium">
+        <div className="hidden items-center gap-8 md:flex">
+          <Link to="/games" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Games
           </Link>
-          <Link to="/contribute" className="text-xs text-muted-foreground hover:text-foreground transition-colors font-heading font-medium">
+          <Link to="/contribute" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Developers
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/auth/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors font-heading font-medium border border-border rounded-lg px-4 py-2 h-9 inline-flex items-center">
+          <Link to="/auth/login" className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Log in
           </Link>
           <Link
             to="/play"
-            className="bg-primary text-primary-foreground text-xs font-heading font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity h-9 inline-flex items-center"
+            className="inline-flex h-9 items-center rounded-lg bg-primary px-4 py-2 font-heading text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             Play now →
           </Link>
@@ -46,4 +49,6 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+});
+
+export default Navbar;

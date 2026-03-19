@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Arena', description: 'Hot potato meets battle royale. Pass the bomb before it explodes!', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-bomb-arena' },
+  { id: 'bomb-arena', title: 'Bomb Pass', description: 'Hot potato meets survival. Pass the bomb before it blows.', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-bomb-arena' },
   { id: 'nitro-race', title: 'Nitro Race', description: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', genre: 'Racing', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-nitro-race' },
   { id: 'apex-arena', title: 'Apex Arena', description: 'Top-down competitive shooter. First to 10 kills wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-apex-arena' },
   { id: 'pong', title: 'Pong', description: 'Classic 2-player pong. First to 7 points wins.', genre: 'Classic', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, coverClass: 'cover-pong' },

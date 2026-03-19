@@ -6,42 +6,42 @@
 
 @layer base {
   :root {
-    --background: 240 33% 3%;
-    --foreground: 240 20% 96%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 240 29% 8%;
-    --card-foreground: 240 20% 96%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 240 29% 8%;
-    --popover-foreground: 240 20% 96%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 245 100% 68%;
-    --primary-foreground: 240 20% 96%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 6%;
 
-    --secondary: 240 29% 12%;
-    --secondary-foreground: 240 20% 96%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 20% 14%;
-    --muted-foreground: 240 20% 96% / 0.5;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 68%;
 
-    --accent: 245 100% 68%;
-    --accent-foreground: 240 20% 96%;
-    --accent-dim: 245 100% 68% / 0.12;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 6%;
+    --accent-dim: 0 0% 100% / 0.06;
 
-    --destructive: 0 84% 71%;
-    --destructive-foreground: 240 20% 96%;
+    --destructive: 0 0% 78%;
+    --destructive-foreground: 0 0% 6%;
 
-    --success: 160 59% 51%;
-    --warning: 45 93% 56%;
+    --success: 0 0% 92%;
+    --warning: 0 0% 76%;
 
-    --border: 0 0% 100% / 0.07;
-    --input: 0 0% 100% / 0.07;
-    --ring: 245 100% 68%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.08;
+    --ring: 0 0% 96%;
 
     --radius: 0.5rem;
 
-    --bg-surface: 240 29% 8%;
-    --bg-elevated: 240 29% 13%;
+    --bg-surface: 0 0% 8%;
+    --bg-elevated: 0 0% 12%;
 
     --font-heading: 'Syne', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
