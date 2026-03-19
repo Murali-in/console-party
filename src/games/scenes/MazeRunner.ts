@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playCoinCollect, playExitReached } from '@/games/SoundFX';
 
 interface MazeConfig {
   players: RoomPlayer[];
@@ -221,11 +222,13 @@ export default class MazeRunnerScene extends Phaser.Scene {
       if (this.coins.has(key)) {
         this.coins.delete(key);
         mp.score++;
+        playCoinCollect();
       }
 
       // Reach exit
       if (mp.x === this.exit.x && mp.y === this.exit.y) {
         mp.score += 5;
+        playExitReached();
         if (this.round >= this.MAX_ROUNDS) {
           this.gameEnded = true;
           const scores: Record<string, number> = {};

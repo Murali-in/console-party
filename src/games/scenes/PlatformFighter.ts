@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playPunch, playJump, playKO } from '@/games/SoundFX';
 
 interface FighterConfig {
   players: RoomPlayer[];
@@ -150,6 +151,7 @@ export default class PlatformFighterScene extends Phaser.Scene {
         f.vy = this.JUMP_VEL;
         f.jumpCount++;
         f.grounded = false;
+        playJump();
       }
 
       // Gravity
@@ -237,9 +239,11 @@ export default class PlatformFighterScene extends Phaser.Scene {
         f.hitCooldown = 0.3;
         f.vx = dir * 250;
         f.vy = -150;
+        playPunch();
         if (f.hp <= 0) {
           this.killFighter(f, id);
           attacker.score++;
+          playKO();
         }
       }
     });
