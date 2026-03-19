@@ -180,6 +180,15 @@ export default function HostLobby() {
                   ? 'Waiting for all players to ready up'
                   : `Start ${selectedGameData?.title || 'Game'} →`}
             </button>
+
+            {selectedGame && players.length < 2 && (
+              <button
+                onClick={handleDemoStart}
+                className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11 mt-2"
+              >
+                Demo with CPU →
+              </button>
+            )}
           </div>
         </div>
       </div>
