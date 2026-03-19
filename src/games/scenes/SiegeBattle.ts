@@ -13,6 +13,7 @@ interface Block {
   vy: number;
   hp: number;
   maxHp: number;
+  falling: boolean;
 }
 
 export default class SiegeBattleScene extends Phaser.Scene {
@@ -37,7 +38,8 @@ export default class SiegeBattleScene extends Phaser.Scene {
   private waitingForShot = true;
   private groundY = 0;
   private turnCount = 0;
-  private shotInFlight = false;
+  private windForce = 0;
+  private windText!: Phaser.GameObjects.Text;
 
   constructor(config: SiegeConfig) {
     super({ key: 'SiegeBattle' });
@@ -64,23 +66,13 @@ export default class SiegeBattleScene extends Phaser.Scene {
 
     // Ground
     this.add.rectangle(w / 2, this.groundY + 25, w, 50, 0x1a1510).setStrokeStyle(1, 0x6c63ff, 0.15);
-
-    // Ground texture
     const groundG = this.add.graphics();
     groundG.lineStyle(1, 0x6c63ff, 0.05);
-    for (let x = 0; x < w; x += 30) {
-      groundG.lineBetween(x, this.groundY, x, h);
-    }
+    for (let x = 0; x < w; x += 30) groundG.lineBetween(x, this.groundY, x, h);
 
     // Build towers
-    this.leftTower = this.buildTower(100, 'left');
-    this.rightTower = this.buildTower(w - 100, 'right');
-
-    // Danger lines
-    const dg = this.add.graphics();
-    dg.lineStyle(1, 0xf87171, 0.2);
-    for (let x = 60; x < 140; x += 8) dg.lineBetween(x, this.groundY - 30, x + 4, this.groundY - 30);
-    for (let x = w - 140; x < w - 60; x += 8) dg.lineBetween(x, this.groundY - 30, x + 4, this.groundY - 30);
+    this.leftTower = this.buildTower(100);
+    this.rightTower = this.buildTower(w - 100);
 
     this.aimLine = this.add.graphics().setDepth(10);
     this.powerBar = this.add.graphics().setDepth(10);
@@ -90,7 +82,14 @@ export default class SiegeBattleScene extends Phaser.Scene {
       fontSize: '13px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(20);
 
-    // Player labels with colors
+    // Wind indicator
+    this.windForce = (Math.random() - 0.5) * 80;
+    this.windText = this.add.text(w / 2, 38, '', {
+      fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#34d399',
+    }).setOrigin(0.5).setDepth(20);
+    this.updateWindText();
+
+    // Player labels
     if (this.roomPlayers[0]) {
       this.add.text(100, 16, this.roomPlayers[0].name, {
         fontSize: '10px', fontFamily: 'JetBrains Mono', color: this.roomPlayers[0].color,
@@ -102,7 +101,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
       }).setOrigin(0.5, 0).setDepth(20);
     }
 
-    // Tower HP displays
+    // Tower HP
     this.add.text(100, h - 16, '', { fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#34d399' })
       .setOrigin(0.5, 1).setDepth(20).setName('leftHP');
     this.add.text(w - 100, h - 16, '', { fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#34d399' })
@@ -111,7 +110,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
     this.updateTurnText();
   }
 
-  buildTower(x: number, _side: string): Block[] {
+  buildTower(x: number): Block[] {
     const blocks: Block[] = [];
     const cols = 2;
     const rows = 5;
@@ -119,11 +118,11 @@ export default class SiegeBattleScene extends Phaser.Scene {
       for (let col = 0; col < cols; col++) {
         const bx = x + (col - 0.5) * 28;
         const by = this.groundY - row * 26 - 13;
-        const hp = row < 2 ? 3 : 2; // Bottom rows tougher
+        const hp = row < 2 ? 3 : 2;
         const brightness = 0x7B6B45 + row * 0x080808;
         const rect = this.add.rectangle(bx, by, 24, 22, brightness)
           .setStrokeStyle(1, 0x6c63ff, 0.15).setDepth(2);
-        blocks.push({ rect, vy: 0, hp, maxHp: hp });
+        blocks.push({ rect, vy: 0, hp, maxHp: hp, falling: false });
       }
     }
     return blocks;
@@ -132,9 +131,15 @@ export default class SiegeBattleScene extends Phaser.Scene {
   updateTurnText() {
     const player = this.roomPlayers[this.currentTurn];
     if (player) {
-      this.turnText.setText(`${player.name}'s turn — Aim & Fire!`);
+      this.turnText.setText(`${player.name}'s turn`);
       this.turnText.setColor(player.color);
     }
+  }
+
+  updateWindText() {
+    const dir = this.windForce > 0 ? '→' : '←';
+    const strength = Math.abs(this.windForce);
+    this.windText.setText(`Wind: ${dir} ${strength.toFixed(0)}`);
   }
 
   update(_time: number, delta: number) {
@@ -147,7 +152,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
 
     const inp = this.inputMap[activePlayer.id] || { x: 0, y: 0, buttonA: false, buttonB: false };
 
-    // Update tower HP text
+    // Tower HP displays
     const leftHP = this.children.getByName('leftHP') as Phaser.GameObjects.Text;
     const rightHP = this.children.getByName('rightHP') as Phaser.GameObjects.Text;
     const leftAlive = this.leftTower.filter(b => b.hp > 0).length;
@@ -168,7 +173,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
         this.fireProjectile();
       }
 
-      // Draw aim line with trajectory preview
+      // Aim line + trajectory preview
       this.aimLine.clear();
       const isLeft = this.currentTurn === 0;
       const ox = isLeft ? 130 : w - 130;
@@ -177,38 +182,36 @@ export default class SiegeBattleScene extends Phaser.Scene {
       const rad = Phaser.Math.DegToRad(-this.aimAngle);
       const spd = 300 + this.power * 500;
 
-      // Trajectory dots
+      // Trajectory dots (accounting for wind)
       this.aimLine.fillStyle(0x6c63ff, 0.2);
-      for (let t = 0; t < 15; t++) {
-        const tt = t * 0.04;
-        const px = ox + Math.cos(rad) * spd * dir * tt;
+      for (let t = 0; t < 20; t++) {
+        const tt = t * 0.035;
+        const px = ox + (Math.cos(rad) * spd * dir + this.windForce) * tt;
         const py = oy + Math.sin(rad) * spd * tt + 0.5 * 400 * tt * tt;
         if (py > this.groundY) break;
         this.aimLine.fillCircle(px, py, 2);
       }
 
-      // Aim line
+      // Aim direction line
       const len = 50 + this.power * 60;
       this.aimLine.lineStyle(2, 0x6c63ff, 0.7);
       this.aimLine.lineBetween(ox, oy, ox + Math.cos(rad) * len * dir, oy + Math.sin(rad) * len);
-
-      // Angle display
-      this.aimLine.fillStyle(0xf0f0f5, 0.5);
 
       // Power bar
       this.powerBar.clear();
       const barW = 100;
       this.powerBar.fillStyle(0x333333, 0.5);
-      this.powerBar.fillRect(w / 2 - barW / 2, 48, barW, 8);
+      this.powerBar.fillRect(w / 2 - barW / 2, 52, barW, 8);
       const powerColor = this.power > 0.8 ? 0xf87171 : this.power > 0.5 ? 0xfbbf24 : 0x34d399;
       this.powerBar.fillStyle(powerColor, 0.9);
-      this.powerBar.fillRect(w / 2 - barW / 2, 48, barW * this.power, 8);
+      this.powerBar.fillRect(w / 2 - barW / 2, 52, barW * this.power, 8);
       this.powerBar.lineStyle(1, 0xffffff, 0.15);
-      this.powerBar.strokeRect(w / 2 - barW / 2, 48, barW, 8);
+      this.powerBar.strokeRect(w / 2 - barW / 2, 52, barW, 8);
     }
 
     // Projectile physics
     if (this.projectile) {
+      this.projVx += this.windForce * dt; // Wind affects projectile
       this.projVy += 400 * dt;
       this.projectile.x += this.projVx * dt;
       this.projectile.y += this.projVy * dt;
@@ -242,45 +245,50 @@ export default class SiegeBattleScene extends Phaser.Scene {
         return;
       }
 
-      // Hit blocks
+      // Hit blocks (splash damage to nearby blocks)
       const targetTower = this.currentTurn === 0 ? this.rightTower : this.leftTower;
       for (const block of targetTower) {
         if (block.hp <= 0) continue;
-        const dist = Phaser.Math.Distance.Between(
-          this.projectile!.x, this.projectile!.y, block.rect.x, block.rect.y
-        );
+        const dist = Phaser.Math.Distance.Between(this.projectile!.x, this.projectile!.y, block.rect.x, block.rect.y);
         if (dist < 22) {
           block.hp--;
           playBlockHit();
           this.cameras.main.shake(100, 0.005);
+
+          // Splash damage to adjacent blocks
+          targetTower.forEach(adj => {
+            if (adj === block || adj.hp <= 0) return;
+            const adjDist = Phaser.Math.Distance.Between(block.rect.x, block.rect.y, adj.rect.x, adj.rect.y);
+            if (adjDist < 35) {
+              adj.hp = Math.max(0, adj.hp - 1);
+              if (adj.hp <= 0) {
+                adj.rect.setAlpha(0.1);
+                playExplosion();
+              } else {
+                this.updateBlockVisual(adj);
+              }
+            }
+          });
 
           if (block.hp <= 0) {
             block.rect.setAlpha(0.1);
             playExplosion();
             this.impactEffect(block.rect.x, block.rect.y);
           } else {
-            // Damage visual
-            const dmgRatio = block.hp / block.maxHp;
-            const r = Math.floor(123 + (1 - dmgRatio) * 80);
-            const g = Math.floor(107 - (1 - dmgRatio) * 50);
-            const b = Math.floor(69 - (1 - dmgRatio) * 30);
-            block.rect.setFillStyle(Phaser.Display.Color.GetColor(r, g, b));
+            this.updateBlockVisual(block);
           }
 
           this.projectile?.destroy();
           this.projectile = null;
           this.applyBlockGravity(targetTower);
 
-          // Check win before next turn
-          if (!this.checkWin()) {
-            this.nextTurn();
-          }
+          if (!this.checkWin()) this.nextTurn();
           return;
         }
       }
     }
 
-    // Block gravity
+    // Block gravity for both towers
     [this.leftTower, this.rightTower].forEach(tower => {
       tower.forEach(block => {
         if (block.hp <= 0) return;
@@ -293,23 +301,51 @@ export default class SiegeBattleScene extends Phaser.Scene {
           ) || block.rect.y >= this.groundY - 13;
 
           if (!hasSupport) {
-            block.vy += 350 * dt;
+            block.vy += 400 * dt;
             block.rect.y = Math.min(block.rect.y + block.vy * dt, this.groundY - 11);
+            block.falling = true;
           } else {
+            if (block.falling && block.vy > 50) {
+              playBlockHit();
+            }
             block.vy = 0;
+            block.falling = false;
           }
         }
       });
     });
   }
 
+  updateBlockVisual(block: Block) {
+    const dmgRatio = block.hp / block.maxHp;
+    const r = Math.floor(123 + (1 - dmgRatio) * 80);
+    const g = Math.floor(107 - (1 - dmgRatio) * 50);
+    const b = Math.floor(69 - (1 - dmgRatio) * 30);
+    block.rect.setFillStyle(Phaser.Display.Color.GetColor(r, g, b));
+    // Add cracks
+    if (dmgRatio <= 0.5) {
+      block.rect.setStrokeStyle(1, 0xf87171, 0.3);
+    }
+  }
+
   impactEffect(x: number, y: number) {
+    // Expanding ring
+    const ring = this.add.circle(x, y, 5, 0xf87171, 0.3).setDepth(8);
+    this.tweens.add({
+      targets: ring,
+      radius: 40,
+      alpha: 0,
+      duration: 350,
+      onComplete: () => ring.destroy(),
+    });
+
+    // Debris particles
     const particles = this.add.graphics().setDepth(8);
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      const dist = 10 + Math.random() * 20;
-      particles.fillStyle(0xf87171, 0.5);
-      particles.fillCircle(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, 2 + Math.random() * 3);
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const dist = 8 + Math.random() * 22;
+      particles.fillStyle(0xf87171, 0.4);
+      particles.fillCircle(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, 2 + Math.random() * 2);
     }
     this.time.delayedCall(400, () => particles.destroy());
   }
@@ -328,7 +364,6 @@ export default class SiegeBattleScene extends Phaser.Scene {
     this.projVy = Math.sin(rad) * spd;
     this.projTrail = [];
     this.waitingForShot = false;
-    this.shotInFlight = true;
     this.aimLine.clear();
     this.powerBar.clear();
   }
@@ -336,7 +371,8 @@ export default class SiegeBattleScene extends Phaser.Scene {
   applyBlockGravity(tower: Block[]) {
     tower.forEach(block => {
       if (block.hp <= 0) return;
-      block.vy = 30;
+      block.vy = 20;
+      block.falling = true;
     });
   }
 
@@ -344,12 +380,14 @@ export default class SiegeBattleScene extends Phaser.Scene {
     this.turnCount++;
     this.currentTurn = (this.currentTurn + 1) % this.roomPlayers.length;
     this.waitingForShot = true;
-    this.shotInFlight = false;
     this.power = 0;
     this.charging = false;
     this.aimAngle = 45;
     this.trailGraphics.clear();
     this.projTrail = [];
+    // New wind each turn
+    this.windForce = (Math.random() - 0.5) * 100;
+    this.updateWindText();
     this.updateTurnText();
   }
 
@@ -375,7 +413,7 @@ export default class SiegeBattleScene extends Phaser.Scene {
     const h = Number(this.game.config.height);
 
     this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.5).setDepth(50);
-    this.add.text(w / 2, h / 2 - 16, `🏆 ${winner} wins!`, {
+    this.add.text(w / 2, h / 2 - 16, `${winner} wins!`, {
       fontSize: '24px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(51);
     this.add.text(w / 2, h / 2 + 16, `${this.turnCount} turns`, {

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
-import { playTransform, playEliminate, playVictory } from '@/games/SoundFX';
+import { playTransform, playEliminate, playVictory, playHit } from '@/games/SoundFX';
 
 interface PropHuntConfig {
   players: RoomPlayer[];
@@ -8,7 +8,7 @@ interface PropHuntConfig {
   inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }>;
 }
 
-const PROP_EMOJIS = ['🪑', '📦', '🪴', '🛢️', '🧸', '📚'];
+const PROP_EMOJIS = ['🪑', '📦', '🪴', '🛢️', '🧸', '📚', '🎒', '🧊'];
 
 export default class PropHuntScene extends Phaser.Scene {
   private roomPlayers: RoomPlayer[];
@@ -29,8 +29,9 @@ export default class PropHuntScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private finished = false;
   private checkCooldown = 0;
-  private hunterCheckRadius!: Phaser.GameObjects.Arc;
-  private scanPulse = 0;
+  private hunterScanRing!: Phaser.GameObjects.Arc;
+  private scanPulseTimer = 0;
+  private hunterChecksLeft = 20;
 
   constructor(config: PropHuntConfig) {
     super({ key: 'PropHunt' });
@@ -43,26 +44,24 @@ export default class PropHuntScene extends Phaser.Scene {
     const w = Number(this.game.config.width);
     const h = Number(this.game.config.height);
 
-    // Room background with furniture-like patterns
+    // Room background
     const bg = this.add.graphics();
     bg.fillStyle(0x120a00, 0.15);
     bg.fillRect(40, 40, w - 80, h - 80);
     bg.lineStyle(1, 0x6c63ff, 0.1);
     bg.strokeRect(40, 40, w - 80, h - 80);
-
-    // Floor tiles
     bg.lineStyle(1, 0xffffff, 0.02);
     for (let x = 40; x < w - 40; x += 60) bg.lineBetween(x, 40, x, h - 40);
     for (let y = 40; y < h - 40; y += 60) bg.lineBetween(40, y, w - 40, y);
 
-    // Scatter decoy props (more of them, varied sizes)
-    const decoyCount = 25;
+    // Scatter decoy props (varied placement)
+    const decoyCount = 30;
     for (let i = 0; i < decoyCount; i++) {
       const dx = 70 + Math.random() * (w - 140);
       const dy = 70 + Math.random() * (h - 140);
       const emoji = PROP_EMOJIS[Math.floor(Math.random() * PROP_EMOJIS.length)];
-      const size = 22 + Math.random() * 12;
-      this.add.text(dx, dy, emoji, { fontSize: `${size}px` }).setOrigin(0.5).setAlpha(0.9);
+      const size = 20 + Math.random() * 14;
+      this.add.text(dx, dy, emoji, { fontSize: `${size}px` }).setOrigin(0.5).setAlpha(0.85);
     }
 
     // Assign roles
@@ -83,19 +82,18 @@ export default class PropHuntScene extends Phaser.Scene {
         .setDepth(5);
       this.playerSprites.set(p.id, sprite);
 
-      const label = this.add.text(px, py - 26, isHunter ? `🔍 ${p.name}` : p.name, {
-        fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#f0f0f5',
+      const label = this.add.text(px, py - 26, isHunter ? `[HUNTER] ${p.name}` : p.name, {
+        fontSize: '9px', fontFamily: 'JetBrains Mono', color: isHunter ? '#f87171' : '#f0f0f5',
       }).setOrigin(0.5).setDepth(10);
       this.playerLabels.set(p.id, label);
-
       this.transformed.set(p.id, false);
     });
 
-    // Hunter search radius indicator
-    this.hunterCheckRadius = this.add.circle(0, 0, 50, 0xf87171, 0)
-      .setStrokeStyle(1, 0xf87171, 0).setDepth(4);
+    // Hunter scan ring
+    this.hunterScanRing = this.add.circle(0, 0, 55, 0xf87171, 0)
+      .setStrokeStyle(2, 0xf87171, 0).setDepth(4);
 
-    // Hunter blind screen
+    // Blind screen for hunter during hiding phase
     this.hunterBlind = this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.94).setDepth(100);
     this.hunterBlindText = this.add.text(w / 2, h / 2, '', {
       fontSize: '18px', fontFamily: 'Syne', color: '#6c63ff', align: 'center',
@@ -120,7 +118,7 @@ export default class PropHuntScene extends Phaser.Scene {
       this.phaseTimer -= delta;
       const secs = Math.ceil(this.phaseTimer / 1000);
       this.statusText.setText(`HIDING PHASE — ${secs}s`);
-      this.hunterBlindText.setText(`🔍 Hunter is blindfolded\nProps are hiding...\n\n${secs}s remaining`);
+      this.hunterBlindText.setText(`Hunter is blindfolded\nProps are hiding...\n\n${secs}s remaining`);
 
       // Props can move and transform
       this.propIds.forEach(id => {
@@ -137,7 +135,7 @@ export default class PropHuntScene extends Phaser.Scene {
           playTransform();
           const emoji = PROP_EMOJIS[Math.floor(Math.random() * PROP_EMOJIS.length)];
           const propText = this.add.text(sprite.x, sprite.y, emoji, {
-            fontSize: `${24 + Math.random() * 8}px`,
+            fontSize: `${22 + Math.random() * 10}px`,
           }).setOrigin(0.5).setDepth(3);
           this.propEmojis.set(id, propText);
           this.playerLabels.get(id)?.setVisible(false);
@@ -156,61 +154,63 @@ export default class PropHuntScene extends Phaser.Scene {
       this.seekTimer -= delta;
       const aliveProps = this.propIds.filter(id => !this.eliminated.has(id));
       const secs = Math.ceil(this.seekTimer / 1000);
-      this.statusText.setText(`SEEKING — ${secs}s — ${aliveProps.length} prop${aliveProps.length !== 1 ? 's' : ''} remaining`);
+      this.statusText.setText(`SEEKING — ${secs}s — ${aliveProps.length} prop${aliveProps.length !== 1 ? 's' : ''} left — ${this.hunterChecksLeft} checks`);
 
       // Hunter moves
       const hInp = this.inputMap[this.hunterId] || { x: 0, y: 0, buttonA: false, buttonB: false };
       const hs = this.playerSprites.get(this.hunterId)!;
-      hs.x = Phaser.Math.Clamp(hs.x + hInp.x * 220 * dt, 55, w - 55);
-      hs.y = Phaser.Math.Clamp(hs.y + hInp.y * 220 * dt, 55, h - 55);
+      hs.x = Phaser.Math.Clamp(hs.x + hInp.x * 240 * dt, 55, w - 55);
+      hs.y = Phaser.Math.Clamp(hs.y + hInp.y * 240 * dt, 55, h - 55);
       this.playerLabels.get(this.hunterId)?.setPosition(hs.x, hs.y - 26);
 
-      // Hunter scan radius visual
-      this.hunterCheckRadius.setPosition(hs.x, hs.y);
+      // Scan ring follows hunter
+      this.hunterScanRing.setPosition(hs.x, hs.y);
 
-      // Props waddle
+      // Props can still move (slowly if transformed)
       this.propIds.forEach(id => {
         if (this.eliminated.has(id)) return;
         const inp = this.inputMap[id] || { x: 0, y: 0 };
         const sprite = this.playerSprites.get(id)!;
-        const spd = this.transformed.get(id) ? 40 : 160;
+        const spd = this.transformed.get(id) ? 35 : 150;
         sprite.x = Phaser.Math.Clamp(sprite.x + inp.x * spd * dt, 55, w - 55);
         sprite.y = Phaser.Math.Clamp(sprite.y + inp.y * spd * dt, 55, h - 55);
         this.playerLabels.get(id)?.setPosition(sprite.x, sprite.y - 26);
         this.propEmojis.get(id)?.setPosition(sprite.x, sprite.y);
       });
 
-      // Hunter check
+      // Hunter check (button A)
       this.checkCooldown -= delta;
-      if (hInp.buttonA && this.checkCooldown <= 0) {
-        this.checkCooldown = 600;
+      if (hInp.buttonA && this.checkCooldown <= 0 && this.hunterChecksLeft > 0) {
+        this.checkCooldown = 500;
+        this.hunterChecksLeft--;
 
-        // Scan pulse
-        this.hunterCheckRadius.setStrokeStyle(2, 0xf87171, 0.5);
-        this.hunterCheckRadius.setFillStyle(0xf87171, 0.05);
-        this.scanPulse = 300;
+        // Scan pulse visual
+        this.hunterScanRing.setStrokeStyle(2, 0xf87171, 0.6);
+        this.hunterScanRing.setFillStyle(0xf87171, 0.06);
+        this.scanPulseTimer = 300;
 
         let foundAny = false;
         this.propIds.forEach(id => {
           if (this.eliminated.has(id)) return;
           const ps = this.playerSprites.get(id)!;
           const dist = Phaser.Math.Distance.Between(hs.x, hs.y, ps.x, ps.y);
-          if (dist < 50) {
+          if (dist < 55) {
             this.eliminated.add(id);
             ps.setAlpha(0);
-            this.propEmojis.get(id)?.setAlpha(0.15);
+            this.propEmojis.get(id)?.setAlpha(0.1);
             playEliminate();
-            this.cameras.main.shake(100, 0.005);
+            this.cameras.main.shake(120, 0.006);
             foundAny = true;
 
-            // Elimination effect
-            const fx = this.add.text(ps.x, ps.y, '❌', { fontSize: '28px' }).setOrigin(0.5).setDepth(15);
+            const fx = this.add.text(ps.x, ps.y, 'FOUND', {
+              fontSize: '12px', fontFamily: 'JetBrains Mono', color: '#f87171', fontStyle: 'bold',
+            }).setOrigin(0.5).setDepth(15);
             this.tweens.add({ targets: fx, alpha: 0, y: ps.y - 30, duration: 800 });
           }
         });
 
         if (!foundAny) {
-          // Miss indicator
+          playHit();
           const miss = this.add.text(hs.x, hs.y - 30, 'MISS', {
             fontSize: '10px', fontFamily: 'JetBrains Mono', color: '#f87171',
           }).setOrigin(0.5).setDepth(15);
@@ -219,18 +219,18 @@ export default class PropHuntScene extends Phaser.Scene {
       }
 
       // Fade scan pulse
-      if (this.scanPulse > 0) {
-        this.scanPulse -= delta;
-        if (this.scanPulse <= 0) {
-          this.hunterCheckRadius.setStrokeStyle(1, 0xf87171, 0);
-          this.hunterCheckRadius.setFillStyle(0xf87171, 0);
+      if (this.scanPulseTimer > 0) {
+        this.scanPulseTimer -= delta;
+        if (this.scanPulseTimer <= 0) {
+          this.hunterScanRing.setStrokeStyle(1, 0xf87171, 0.1);
+          this.hunterScanRing.setFillStyle(0xf87171, 0);
         }
       }
 
       // Win checks
       if (aliveProps.length === 0) {
         this.endGame(this.roomPlayers.find(p => p.id === this.hunterId)?.name || 'Hunter', 'hunter');
-      } else if (this.seekTimer <= 0) {
+      } else if (this.seekTimer <= 0 || this.hunterChecksLeft <= 0) {
         this.endGame('Props', 'props');
       }
     }
@@ -243,7 +243,7 @@ export default class PropHuntScene extends Phaser.Scene {
     const h = Number(this.game.config.height);
 
     this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.5).setDepth(50);
-    this.add.text(w / 2, h / 2, `${winner} win${winner === 'Props' ? '' : 's'}! 🏆`, {
+    this.add.text(w / 2, h / 2, `${winner} win${winner === 'Props' ? '' : 's'}!`, {
       fontSize: '24px', fontFamily: 'Syne', color: '#6c63ff', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(51);
 

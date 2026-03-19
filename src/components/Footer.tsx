@@ -9,15 +9,15 @@ export default function Footer() {
           <span className="font-heading font-semibold text-xs text-foreground">Eternity Console</span>
         </div>
         <div className="flex items-center gap-6">
-          <Link to="/games" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors font-heading">Games</Link>
-          <Link to="/contribute" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors font-heading">Contribute</Link>
+          <Link to="/games" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-150 font-heading">Games</Link>
+          <Link to="/contribute" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-150 font-heading">Contribute</Link>
           <span className="text-[11px] text-muted-foreground font-heading">Privacy</span>
           <span className="text-[11px] text-muted-foreground font-heading">Terms</span>
         </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-6 pb-6 flex items-center justify-between">
         <span className="text-[10px] text-muted-foreground font-mono">© 2025 Eternity AI</span>
-        <span className="text-[10px] text-muted-foreground font-mono">Made for screens of all shapes.</span>
+      </div>
+      <div className="text-center pb-6">
+        <span className="text-[10px] text-muted-foreground font-mono">Made for every screen.</span>
       </div>
     </footer>
   );
