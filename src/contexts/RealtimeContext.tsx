@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -23,12 +23,12 @@ const PLAYER_COLORS = ['#6c63ff', '#34d399', '#f87171', '#fbbf24'];
 
 interface RealtimeContextType {
   createRoom: () => string;
-  joinRoom: (roomCode: string, playerName: string, callbacks: RoomCallbacks) => RealtimeChannel;
+  joinRoom: (roomCode: string, playerName: string, callbacks: RoomCallbacks, playerId?: string) => RealtimeChannel;
   hostRoom: (roomCode: string, callbacks: HostCallbacks) => RealtimeChannel;
   sendInput: (channel: RealtimeChannel, input: PlayerInput) => void;
   sendGameEvent: (channel: RealtimeChannel, type: string, data: any) => void;
   sendReady: (channel: RealtimeChannel, playerId: string, ready: boolean) => void;
-  leaveRoom: (channel: RealtimeChannel) => void;
+  leaveRoom: (channel: RealtimeChannel, playerId?: string) => void;
 }
 
 interface RoomCallbacks {
@@ -51,12 +51,8 @@ const RealtimeContext = createContext<RealtimeContextType>({} as RealtimeContext
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const playersRef = useRef<RoomPlayer[]>([]);
 
-  const generateRoomCode = () => {
-    return String(Math.floor(100000 + Math.random() * 900000));
-  };
-
   const createRoom = useCallback(() => {
-    const code = generateRoomCode();
+    const code = String(Math.floor(100000 + Math.random() * 900000));
     playersRef.current = [];
     return code;
   }, []);
@@ -68,29 +64,49 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     channel
       .on('broadcast', { event: 'player-join' }, ({ payload }) => {
+        const existingPlayer = playersRef.current.find((player) => player.id === payload.id);
+
+        if (existingPlayer) {
+          playersRef.current = playersRef.current.map((player) =>
+            player.id === payload.id ? { ...player, name: payload.name } : player,
+          );
+          channel.send({
+            type: 'broadcast',
+            event: 'player-accepted',
+            payload: { player: existingPlayer, players: playersRef.current },
+          });
+          callbacks.onPlayerJoined?.(playersRef.current);
+          return;
+        }
+
         const player: RoomPlayer = {
           id: payload.id,
           name: payload.name,
           index: playersRef.current.length,
-          color: PLAYER_COLORS[playersRef.current.length % 4],
+          color: PLAYER_COLORS[playersRef.current.length % PLAYER_COLORS.length],
           ready: false,
         };
+
         playersRef.current = [...playersRef.current, player];
-        channel.send({ type: 'broadcast', event: 'player-accepted', payload: { player, players: playersRef.current } });
+        channel.send({
+          type: 'broadcast',
+          event: 'player-accepted',
+          payload: { player, players: playersRef.current },
+        });
         callbacks.onPlayerJoined?.(playersRef.current);
       })
       .on('broadcast', { event: 'player-input' }, ({ payload }) => {
         callbacks.onInputUpdate?.(payload as PlayerInput);
       })
       .on('broadcast', { event: 'player-ready' }, ({ payload }) => {
-        playersRef.current = playersRef.current.map(p =>
-          p.id === payload.playerId ? { ...p, ready: payload.ready } : p
+        playersRef.current = playersRef.current.map((player) =>
+          player.id === payload.playerId ? { ...player, ready: payload.ready } : player,
         );
         callbacks.onPlayerReady?.(payload.playerId, payload.ready);
         callbacks.onPlayerJoined?.(playersRef.current);
       })
       .on('broadcast', { event: 'player-leave' }, ({ payload }) => {
-        playersRef.current = playersRef.current.filter(p => p.id !== payload.id);
+        playersRef.current = playersRef.current.filter((player) => player.id !== payload.id);
         callbacks.onPlayerLeft?.(payload.id);
         callbacks.onPlayerJoined?.(playersRef.current);
       })
@@ -99,8 +115,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     return channel;
   }, []);
 
-  const joinRoom = useCallback((roomCode: string, playerName: string, callbacks: RoomCallbacks) => {
-    const playerId = crypto.randomUUID();
+  const joinRoom = useCallback((roomCode: string, playerName: string, callbacks: RoomCallbacks, playerId?: string) => {
+    const resolvedPlayerId = playerId || crypto.randomUUID();
     const channel = supabase.channel(`room:${roomCode}`, {
       config: { broadcast: { self: false } },
     });
@@ -123,7 +139,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          channel.send({ type: 'broadcast', event: 'player-join', payload: { id: playerId, name: playerName } });
+          channel.send({
+            type: 'broadcast',
+            event: 'player-join',
+            payload: { id: resolvedPlayerId, name: playerName },
+          });
         }
       });
 
@@ -142,7 +162,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     channel.send({ type: 'broadcast', event: 'player-ready', payload: { playerId, ready } });
   }, []);
 
-  const leaveRoom = useCallback((channel: RealtimeChannel) => {
+  const leaveRoom = useCallback((channel: RealtimeChannel, playerId?: string) => {
+    if (playerId) {
+      channel.send({ type: 'broadcast', event: 'player-leave', payload: { id: playerId } });
+    }
     supabase.removeChannel(channel);
   }, []);
 

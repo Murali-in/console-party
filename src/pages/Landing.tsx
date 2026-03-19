@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Arena', genre: 'Party', players: '2–4', coverClass: 'cover-bomb-arena' },
+  { id: 'bomb-arena', title: 'Bomb Pass', genre: 'Party', players: '2–4', coverClass: 'cover-bomb-arena' },
   { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', players: '2–4', coverClass: 'cover-nitro-race' },
   { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', players: '2–4', coverClass: 'cover-apex-arena' },
   { id: 'pong', title: 'Pong', genre: 'Classic', players: '2', coverClass: 'cover-pong' },

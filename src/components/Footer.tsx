@@ -1,24 +1,25 @@
 import { Link } from 'react-router-dom';
+import { forwardRef } from 'react';
+import BrandLogo from '@/components/BrandLogo';
 
-export default function Footer() {
+const Footer = forwardRef<HTMLElement>(function Footer(_props, ref) {
   return (
-    <footer className="border-t border-border">
-      <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5">
-          <span className="text-primary font-heading font-bold text-sm">∞</span>
-          <span className="font-heading font-semibold text-xs text-foreground">Eternity Console</span>
-        </div>
+    <footer ref={ref} className="border-t border-border">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 md:flex-row">
+        <BrandLogo compact />
         <div className="flex items-center gap-6">
-          <Link to="/games" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-150 font-heading">Games</Link>
-          <Link to="/contribute" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-150 font-heading">Contribute</Link>
-          <span className="text-[11px] text-muted-foreground font-heading">Privacy</span>
-          <span className="text-[11px] text-muted-foreground font-heading">Terms</span>
+          <Link to="/games" className="font-heading text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground">Games</Link>
+          <Link to="/contribute" className="font-heading text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground">Contribute</Link>
+          <span className="font-heading text-[11px] text-muted-foreground">Privacy</span>
+          <span className="font-heading text-[11px] text-muted-foreground">Terms</span>
         </div>
-        <span className="text-[10px] text-muted-foreground font-mono">© 2025 Eternity AI</span>
+        <span className="font-mono text-[10px] text-muted-foreground">© 2025 Eternity Console</span>
       </div>
-      <div className="text-center pb-6">
-        <span className="text-[10px] text-muted-foreground font-mono">Made for every screen.</span>
+      <div className="pb-6 text-center">
+        <span className="font-mono text-[10px] text-muted-foreground">Made for every screen.</span>
       </div>
     </footer>
   );
-}
+});
+
+export default Footer;
