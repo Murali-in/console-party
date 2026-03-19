@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+
 interface GameCardProps {
+  id: string;
   title: string;
   genre: string;
   minPlayers: number;
