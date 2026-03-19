@@ -29,7 +29,7 @@ export default class SnakeBattleScene extends Phaser.Scene {
   private CELL = 16;
   private COLS = 0;
   private ROWS = 0;
-  private BASE_INTERVAL = 120; // ms per move
+  private BASE_INTERVAL = 120;
   private FAST_INTERVAL = 60;
   private hudText!: Phaser.GameObjects.Text;
   private gameEnded = false;
@@ -46,10 +46,8 @@ export default class SnakeBattleScene extends Phaser.Scene {
     const h = Number(this.game.config.height);
     this.COLS = Math.floor(w / this.CELL);
     this.ROWS = Math.floor(h / this.CELL);
-
     this.gfx = this.add.graphics();
 
-    // Spawn snakes
     const spawns = [
       { x: 5, y: Math.floor(this.ROWS / 2), dir: { x: 1, y: 0 } },
       { x: this.COLS - 6, y: Math.floor(this.ROWS / 2), dir: { x: -1, y: 0 } },
@@ -75,7 +73,6 @@ export default class SnakeBattleScene extends Phaser.Scene {
       });
     });
 
-    // Initial food
     for (let i = 0; i < 3; i++) this.spawnFood();
 
     this.hudText = this.add.text(w / 2, 4, '', {
@@ -100,74 +97,125 @@ export default class SnakeBattleScene extends Phaser.Scene {
     }
   }
 
+  /** Smart CPU AI: chase nearest food while avoiding death */
+  private getCpuDirection(snake: SnakeData): { x: number; y: number } | null {
+    const head = snake.segments[0];
+    const occupied = new Set<string>();
+    this.snakes.forEach(s => {
+      if (!s.alive) return;
+      s.segments.forEach(seg => occupied.add(`${seg.x},${seg.y}`));
+    });
+
+    // Find nearest food
+    let nearestFood = this.food[0];
+    let minDist = Infinity;
+    for (const f of this.food) {
+      const d = Math.abs(f.x - head.x) + Math.abs(f.y - head.y);
+      if (d < minDist) { minDist = d; nearestFood = f; }
+    }
+
+    // Possible directions
+    const dirs = [
+      { x: 1, y: 0 }, { x: -1, y: 0 },
+      { x: 0, y: 1 }, { x: 0, y: -1 },
+    ];
+
+    // Filter: can't reverse
+    const valid = dirs.filter(d =>
+      !(d.x === -snake.dir.x && d.y === -snake.dir.y)
+    );
+
+    // Score each direction
+    const scored = valid.map(d => {
+      const nx = head.x + d.x;
+      const ny = head.y + d.y;
+      // Wall death
+      if (nx < 0 || nx >= this.COLS || ny < 0 || ny >= this.ROWS) return { d, score: -1000 };
+      // Snake collision
+      if (occupied.has(`${nx},${ny}`)) return { d, score: -1000 };
+
+      let score = 0;
+      // Prefer direction toward food
+      if (nearestFood) {
+        const oldDist = Math.abs(nearestFood.x - head.x) + Math.abs(nearestFood.y - head.y);
+        const newDist = Math.abs(nearestFood.x - nx) + Math.abs(nearestFood.y - ny);
+        score += (oldDist - newDist) * 10;
+      }
+      // Penalize being near walls (look ahead 2 cells)
+      const nx2 = nx + d.x;
+      const ny2 = ny + d.y;
+      if (nx2 < 0 || nx2 >= this.COLS || ny2 < 0 || ny2 >= this.ROWS) score -= 3;
+      if (occupied.has(`${nx2},${ny2}`)) score -= 5;
+      // Bonus for open space
+      let openCount = 0;
+      for (const check of dirs) {
+        const cx = nx + check.x, cy = ny + check.y;
+        if (cx >= 0 && cx < this.COLS && cy >= 0 && cy < this.ROWS && !occupied.has(`${cx},${cy}`)) openCount++;
+      }
+      score += openCount * 2;
+      return { d, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0]?.score > -1000 ? scored[0].d : scored[0]?.d || null;
+  }
+
   update(_time: number, delta: number) {
     if (this.gameEnded) return;
 
-    // Read input → set next direction
+    // Read input
     this.snakes.forEach((snake, pid) => {
       if (!snake.alive) return;
       const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false };
       snake.speedBoost = inp.buttonB;
 
-      // Determine direction from joystick
       if (Math.abs(inp.x) > 0.3 || Math.abs(inp.y) > 0.3) {
         let nx: number, ny: number;
         if (Math.abs(inp.x) > Math.abs(inp.y)) {
-          nx = inp.x > 0 ? 1 : -1;
-          ny = 0;
+          nx = inp.x > 0 ? 1 : -1; ny = 0;
         } else {
-          nx = 0;
-          ny = inp.y > 0 ? 1 : -1;
+          nx = 0; ny = inp.y > 0 ? 1 : -1;
         }
-        // Can't reverse
         if (nx !== -snake.dir.x || ny !== -snake.dir.y) {
           snake.nextDir = { x: nx, y: ny };
         }
       }
+
+      // CPU players: use smart AI
+      if (pid.startsWith('demo-cpu') || pid.startsWith('cpu-')) {
+        const aiDir = this.getCpuDirection(snake);
+        if (aiDir) snake.nextDir = aiDir;
+      }
     });
 
-    // Check if any snake needs speed update
     let interval = this.BASE_INTERVAL;
     this.snakes.forEach(s => { if (s.alive && s.speedBoost) interval = Math.min(interval, this.FAST_INTERVAL); });
 
     this.moveTimer += delta;
-    if (this.moveTimer < interval) {
-      this.draw();
-      return;
-    }
+    if (this.moveTimer < interval) { this.draw(); return; }
     this.moveTimer = 0;
 
-    // Move snakes
-    this.snakes.forEach((snake, pid) => {
+    // Move
+    this.snakes.forEach((snake) => {
       if (!snake.alive) return;
       snake.dir = { ...snake.nextDir };
       const head = snake.segments[0];
       const newHead = { x: head.x + snake.dir.x, y: head.y + snake.dir.y };
 
-      // Wall collision
       if (newHead.x < 0 || newHead.x >= this.COLS || newHead.y < 0 || newHead.y >= this.ROWS) {
-        snake.alive = false;
-        return;
+        snake.alive = false; return;
       }
 
-      // Self/other snake collision
       let collided = false;
       this.snakes.forEach((other) => {
         if (!other.alive) return;
         for (const seg of other.segments) {
-          if (seg.x === newHead.x && seg.y === newHead.y) {
-            collided = true;
-          }
+          if (seg.x === newHead.x && seg.y === newHead.y) collided = true;
         }
       });
-      if (collided) {
-        snake.alive = false;
-        return;
-      }
+      if (collided) { snake.alive = false; return; }
 
       snake.segments.unshift(newHead);
-
-      // Check food
       const foodIdx = this.food.findIndex(f => f.x === newHead.x && f.y === newHead.y);
       if (foodIdx >= 0) {
         this.food.splice(foodIdx, 1);
@@ -178,23 +226,18 @@ export default class SnakeBattleScene extends Phaser.Scene {
       }
     });
 
-    // Check game over
     const alive = Array.from(this.snakes.values()).filter(s => s.alive);
     if (alive.length <= 1) {
       this.gameEnded = true;
       const scores: Record<string, number> = {};
       this.snakes.forEach(s => { scores[s.name] = s.score; });
-      const winner = alive[0]?.name || 'Draw';
-      this.onGameOver(winner, scores);
+      this.onGameOver(alive[0]?.name || 'Draw', scores);
     }
-
     this.draw();
   }
 
   private draw() {
     this.gfx.clear();
-
-    // Grid dots
     this.gfx.fillStyle(0xffffff, 0.02);
     for (let x = 0; x < this.COLS; x++) {
       for (let y = 0; y < this.ROWS; y++) {
@@ -202,13 +245,11 @@ export default class SnakeBattleScene extends Phaser.Scene {
       }
     }
 
-    // Food
     this.food.forEach(f => {
       this.gfx.fillStyle(0xf87171, 1);
       this.gfx.fillRect(f.x * this.CELL + 2, f.y * this.CELL + 2, this.CELL - 4, this.CELL - 4);
     });
 
-    // Snakes
     this.snakes.forEach(snake => {
       const alpha = snake.alive ? 1 : 0.2;
       snake.segments.forEach((seg, i) => {
@@ -218,7 +259,6 @@ export default class SnakeBattleScene extends Phaser.Scene {
       });
     });
 
-    // HUD
     const info = Array.from(this.snakes.values()).map(s => `${s.name}: ${s.score}`).join('  ');
     this.hudText.setText(info);
   }
