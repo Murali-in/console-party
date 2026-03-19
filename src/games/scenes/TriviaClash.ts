@@ -213,6 +213,7 @@ export default class TriviaClashScene extends Phaser.Scene {
         if (choice >= 0 && wasIdle) {
           tp.answer = choice;
           tp.answered = true;
+          playTriviaSelect();
         }
       });
 
