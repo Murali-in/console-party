@@ -12,7 +12,9 @@ interface GameCardProps {
   onClick?: () => void;
 }
 
-export default function GameCard({ title, genre, minPlayers, maxPlayers, coverUrl, coverClass, gameType, onClick }: GameCardProps) {
+export default function GameCard({ id, title, genre, minPlayers, maxPlayers, coverUrl, coverClass, gameType, onClick }: GameCardProps) {
+  const navigate = useNavigate();
+  const handleClick = onClick || (() => navigate(`/games/${id}`));
   return (
     <button
       onClick={onClick}
