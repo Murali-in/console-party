@@ -52,33 +52,29 @@ export default function HostLobby() {
     };
   }, []);
 
-  const allReady = players.length >= 1 && players.every(p => p.ready);
   const hasPlayers = players.length >= 1;
+  const allReadyMulti = players.length >= 2 && players.every(p => p.ready);
 
-  const handleDemoStart = useCallback(() => {
+  // Solo with phone: 1 player connected, plays vs CPU
+  const handleSoloStart = useCallback(() => {
     if (!selectedGame || !hasPlayers) return;
-    // Use real connected player as P1, add CPU as P2
-    const demoPlayers = [
+    const soloPlayers = [
       ...players.map((p, i) => ({ ...p, index: i, ready: true })),
       { id: 'demo-cpu', name: 'CPU', index: players.length, color: '#888888', ready: true },
     ];
     sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-      gameId: selectedGame, players: demoPlayers, roomCode, demo: false, soloPhone: true,
+      gameId: selectedGame, players: soloPlayers, roomCode, soloPhone: true,
     }));
     channelRef.current?.send({
       type: 'broadcast', event: 'game-started',
-      payload: { gameId: selectedGame, players: demoPlayers },
+      payload: { gameId: selectedGame, players: soloPlayers },
     });
     navigate(`/play/game/${roomCode}`);
   }, [selectedGame, hasPlayers, players, roomCode, navigate]);
 
-  // Multiplayer: all players ready, at least 2
-  const handleStartGame = useCallback(() => {
-    if (!selectedGame || players.length < 2 || !players.every(p => p.ready)) return;
-
-  // was handleStartGame before — now merged
+  // Multiplayer: 2+ players all ready
   const handleMultiStart = useCallback(() => {
-    if (!selectedGame || players.length < 2 || !players.every(p => p.ready)) return;
+    if (!selectedGame || !allReadyMulti) return;
 
     setCountdown(3);
     playCountdownBeep(false);
@@ -107,7 +103,7 @@ export default function HostLobby() {
         setTimeout(() => navigate(`/play/game/${roomCode}`), 600);
       }
     }, 1000);
-  }, [selectedGame, allReady, players, roomCode, navigate]);
+  }, [selectedGame, allReadyMulti, players, roomCode, navigate]);
 
   const selectedGameData = BUILT_IN_GAMES.find(g => g.id === selectedGame);
 
@@ -135,17 +131,20 @@ export default function HostLobby() {
             <QRDisplay roomCode={roomCode} />
 
             <div className="p-4 rounded-[10px] border border-border bg-card space-y-2">
-              <h4 className="font-heading text-xs font-semibold text-muted-foreground uppercase tracking-wider">How players join</h4>
+              <h4 className="font-heading text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {hasPlayers ? '✓ Phone connected' : '① Connect your phone first'}
+              </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Players open their phone browser and scan the QR code or visit the URL.
-                Works over any internet connection — same Wi-Fi not required.
+                {hasPlayers
+                  ? 'Your phone is now a controller. Select a game and start playing — solo vs CPU or wait for more players.'
+                  : 'Scan the QR code on your phone to connect it as a controller. You need at least one phone connected to play.'}
               </p>
             </div>
 
             <div className="space-y-3">
               <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Players ({players.length}/4)
-                {allReady && <span className="ml-2 text-success">· All ready!</span>}
+                {allReadyMulti && <span className="ml-2 text-success">· All ready!</span>}
               </h3>
               {[0, 1, 2, 3].map(i => (
                 <PlayerSlot key={i} index={i} player={players[i]} />
@@ -187,33 +186,43 @@ export default function HostLobby() {
               </div>
             )}
 
-            <button
-              onClick={handleStartGame}
-              disabled={!selectedGame || !allReady || countdown !== null}
-              className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30 disabled:cursor-not-allowed h-11"
-            >
-              {players.length < 2
-                ? `Waiting for players (${players.length}/2 minimum)`
-                : !allReady
-                  ? 'Waiting for all players to ready up'
-                  : `Start ${selectedGameData?.title || 'Game'} →`}
-            </button>
-
-            {selectedGame && players.length < 2 && (
-              <div className="space-y-2 mt-2">
-                <button
-                  onClick={handleDemoStart}
-                  className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11"
-                >
-                  Demo with Keyboard →
-                </button>
-                <button
-                  onClick={handleSoloPhoneStart}
-                  className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11"
-                >
-                  Solo with Phone Controller →
-                </button>
+            {/* No players connected yet */}
+            {!hasPlayers && (
+              <div className="w-full text-center py-4 rounded-lg border border-dashed border-border">
+                <p className="text-sm text-muted-foreground font-heading">Connect a phone to start playing</p>
+                <p className="text-[10px] text-muted-foreground font-mono mt-1">Scan QR code or enter room code on your phone</p>
               </div>
+            )}
+
+            {/* 1 player: solo vs CPU option */}
+            {hasPlayers && players.length === 1 && selectedGame && (
+              <div className="space-y-2">
+                <button
+                  onClick={handleSoloStart}
+                  disabled={!players[0]?.ready || countdown !== null}
+                  className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30 disabled:cursor-not-allowed h-11"
+                >
+                  {!players[0]?.ready
+                    ? 'Waiting for you to ready up...'
+                    : `Play ${selectedGameData?.title} Solo vs CPU →`}
+                </button>
+                <p className="text-[10px] text-center text-muted-foreground font-mono">
+                  Or wait for more players to join for multiplayer
+                </p>
+              </div>
+            )}
+
+            {/* 2+ players: multiplayer start */}
+            {players.length >= 2 && selectedGame && (
+              <button
+                onClick={handleMultiStart}
+                disabled={!allReadyMulti || countdown !== null}
+                className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30 disabled:cursor-not-allowed h-11"
+              >
+                {!allReadyMulti
+                  ? 'Waiting for all players to ready up'
+                  : `Start ${selectedGameData?.title} (${players.length}P) →`}
+              </button>
             )}
           </div>
         </div>
