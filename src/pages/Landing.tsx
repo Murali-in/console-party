@@ -9,6 +9,9 @@ const GAMES = [
   { id: 'pong', title: 'Pong', genre: 'Classic', players: '2', coverClass: 'cover-pong' },
   { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', players: '2–4', coverClass: 'cover-tank-battle' },
   { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', players: '2–4', coverClass: 'cover-snake-battle' },
+  { id: 'platform-fighter', title: 'Brawl Zone', genre: 'Fighter', players: '2–4', coverClass: 'cover-platform-fighter' },
+  { id: 'maze-runner', title: 'Maze Runner', genre: 'Puzzle', players: '2–4', coverClass: 'cover-maze-runner' },
+  { id: 'trivia-clash', title: 'Trivia Clash', genre: 'Quiz', players: '2–4', coverClass: 'cover-trivia-clash' },
 ];
 
 const STEPS = [
