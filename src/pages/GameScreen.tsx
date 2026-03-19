@@ -61,20 +61,45 @@ export default function GameScreen() {
           });
         }
 
-        // Simple CPU AI for player 2
+        // Game-specific CPU AI for player 2
         if (p2Id) {
-          const current = inputMap[p2Id] ?? { x: 0, y: 0, buttonA: false, buttonB: false };
-          // Random wandering + occasional shooting
           const t = Date.now() / 1000;
-          const cx = Math.sin(t * 0.7) * 0.6;
-          const cy = Math.cos(t * 0.5) * 0.6;
+          let cx = 0, cy = 0, ba = false, bb = false;
+
+          if (state.gameId === 'snake-battle') {
+            // Snake CPU: change direction periodically, avoid edges
+            const phase = Math.floor(t * 0.8) % 4;
+            if (phase === 0) { cx = 1; cy = 0; }
+            else if (phase === 1) { cx = 0; cy = 1; }
+            else if (phase === 2) { cx = -1; cy = 0; }
+            else { cx = 0; cy = -1; }
+          } else if (state.gameId === 'pong') {
+            // Pong has built-in CPU, just provide minimal input
+            cy = Math.sin(t * 2) * 0.5;
+          } else if (state.gameId === 'nitro-race') {
+            // Race: accelerate forward + slight steering
+            cy = -0.8; // forward
+            cx = Math.sin(t * 0.6) * 0.7;
+            bb = Math.sin(t * 2) > 0.95; // nitro
+          } else if (state.gameId === 'tank-battle') {
+            // Tanks: move + shoot periodically
+            cx = Math.sin(t * 0.5) * 0.6;
+            cy = Math.cos(t * 0.4) * -0.5;
+            ba = Math.sin(t * 2.5) > 0.5;
+          } else {
+            // Default: wander + occasional actions
+            cx = Math.sin(t * 0.7) * 0.6;
+            cy = Math.cos(t * 0.5) * 0.6;
+            ba = Math.sin(t * 3) > 0.7;
+            bb = Math.sin(t * 1.5) > 0.9;
+          }
+
           updateInput({
             playerId: p2Id,
             playerIndex: 1,
-            x: cx,
-            y: cy,
-            buttonA: Math.sin(t * 3) > 0.7,
-            buttonB: Math.sin(t * 1.5) > 0.9,
+            x: cx, y: cy,
+            buttonA: ba,
+            buttonB: bb,
           });
         }
       }, 16);
