@@ -14,6 +14,9 @@ const BUILT_IN_GAMES = [
   { id: 'pong', title: 'Pong', genre: 'Classic', minPlayers: 2, maxPlayers: 2, desc: 'Classic 2-player pong. First to 7 points wins.', coverClass: 'cover-pong' },
   { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', minPlayers: 2, maxPlayers: 4, desc: 'Drive, aim, and shoot. Last tank standing wins.', coverClass: 'cover-tank-battle' },
   { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, desc: 'Multiplayer snake on a shared grid. Last snake alive wins.', coverClass: 'cover-snake-battle' },
+  { id: 'platform-fighter', title: 'Brawl Zone', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, desc: 'Platform fighter. Punch, jump, and smash. First to 5 KOs wins.', coverClass: 'cover-platform-fighter' },
+  { id: 'maze-runner', title: 'Maze Runner', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, desc: 'Race through procedural mazes. Collect coins, find the exit first.', coverClass: 'cover-maze-runner' },
+  { id: 'trivia-clash', title: 'Trivia Clash', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, desc: '10 rounds of rapid-fire trivia. Use your joystick to pick answers.', coverClass: 'cover-trivia-clash' },
 ];
 
 export default function HostLobby() {
