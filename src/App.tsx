@@ -13,6 +13,7 @@ import GameScreen from "./pages/GameScreen";
 import ControllerView from "./pages/ControllerView";
 import GameLibrary from "./pages/GameLibrary";
 import Contribute from "./pages/Contribute";
+import GameDetail from "./pages/GameDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
