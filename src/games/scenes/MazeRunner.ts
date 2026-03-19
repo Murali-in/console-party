@@ -228,6 +228,7 @@ export default class MazeRunnerScene extends Phaser.Scene {
       // Reach exit
       if (mp.x === this.exit.x && mp.y === this.exit.y) {
         mp.score += 5;
+        playExitReached();
         if (this.round >= this.MAX_ROUNDS) {
           this.gameEnded = true;
           const scores: Record<string, number> = {};

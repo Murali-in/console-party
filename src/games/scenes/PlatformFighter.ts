@@ -239,9 +239,11 @@ export default class PlatformFighterScene extends Phaser.Scene {
         f.hitCooldown = 0.3;
         f.vx = dir * 250;
         f.vy = -150;
+        playPunch();
         if (f.hp <= 0) {
           this.killFighter(f, id);
           attacker.score++;
+          playKO();
         }
       }
     });

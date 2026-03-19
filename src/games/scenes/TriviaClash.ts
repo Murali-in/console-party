@@ -257,11 +257,13 @@ export default class TriviaClashScene extends Phaser.Scene {
       }
     });
 
-    this.resultText.setText(
-      correctNames.length > 0
-        ? `✓ ${correctNames.join(', ')} got it!`
-        : '✗ Nobody got it right'
-    );
+    if (correctNames.length > 0) {
+      playCorrectAnswer();
+      this.resultText.setText(`✓ ${correctNames.join(', ')} got it!`);
+    } else {
+      playWrongAnswer();
+      this.resultText.setText('✗ Nobody got it right');
+    }
 
     // Update scores
     let i = 0;
