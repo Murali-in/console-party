@@ -52,7 +52,8 @@ export default function HostLobby() {
     };
   }, []);
 
-  const allReady = players.length >= 2 && players.every(p => p.ready);
+  const allReady = players.length >= 1 && players.every(p => p.ready);
+  const hasPlayers = players.length >= 1;
 
   const handleDemoStart = useCallback(() => {
     if (!selectedGame) return;
