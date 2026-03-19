@@ -10,7 +10,7 @@ interface NitroConfig {
 
 interface CarState {
   sprite: Phaser.GameObjects.Container;
-  body: Phaser.GameObjects.Rectangle;
+  bodyRect: Phaser.GameObjects.Rectangle;
   flameFx: Phaser.GameObjects.Rectangle;
   angle: number;
   speed: number;
@@ -41,6 +41,10 @@ export default class NitroRaceScene extends Phaser.Scene {
   private cy = 0;
   private rx = 0;
   private ry = 0;
+  private trackInnerRx = 0;
+  private trackInnerRy = 0;
+  private trackOuterRx = 0;
+  private trackOuterRy = 0;
 
   constructor(config: NitroConfig) {
     super({ key: 'NitroRace' });
@@ -57,23 +61,25 @@ export default class NitroRaceScene extends Phaser.Scene {
     this.rx = w * 0.36;
     this.ry = h * 0.33;
 
-    // Track background
+    const trackWidth = 72;
+    this.trackInnerRx = this.rx - trackWidth / 2;
+    this.trackInnerRy = this.ry - trackWidth / 2;
+    this.trackOuterRx = this.rx + trackWidth / 2;
+    this.trackOuterRy = this.ry + trackWidth / 2;
+
+    // Track rendering
     const trackG = this.add.graphics();
-
-    // Outer track edge
-    trackG.lineStyle(68, 0x16162a, 1);
+    trackG.lineStyle(trackWidth, 0x16162a, 1);
     trackG.strokeEllipse(this.cx, this.cy, this.rx * 2, this.ry * 2);
-
-    // Track surface markings
-    trackG.lineStyle(1, 0x6c63ff, 0.08);
+    trackG.lineStyle(1, 0x6c63ff, 0.1);
     trackG.strokeEllipse(this.cx, this.cy, this.rx * 2, this.ry * 2);
     trackG.lineStyle(1, 0x6c63ff, 0.06);
-    trackG.strokeEllipse(this.cx, this.cy, this.rx * 2 + 68, this.ry * 2 + 68);
-    trackG.strokeEllipse(this.cx, this.cy, this.rx * 2 - 68, this.ry * 2 - 68);
+    trackG.strokeEllipse(this.cx, this.cy, this.trackOuterRx * 2, this.trackOuterRy * 2);
+    trackG.strokeEllipse(this.cx, this.cy, this.trackInnerRx * 2, this.trackInnerRy * 2);
 
     // Dashed center line
     const dashG = this.add.graphics();
-    dashG.lineStyle(1, 0xffffff, 0.08);
+    dashG.lineStyle(1, 0xffffff, 0.06);
     for (let a = 0; a < Math.PI * 2; a += 0.08) {
       if (Math.floor(a / 0.08) % 3 === 0) continue;
       const x1 = this.cx + Math.cos(a) * this.rx;
@@ -89,48 +95,37 @@ export default class NitroRaceScene extends Phaser.Scene {
       const a = (i / cpCount) * Math.PI * 2 - Math.PI / 2;
       const px = this.cx + Math.cos(a) * this.rx;
       const py = this.cy + Math.sin(a) * this.ry;
-      this.checkpoints.push(new Phaser.Geom.Rectangle(px - 35, py - 35, 70, 70));
+      this.checkpoints.push(new Phaser.Geom.Rectangle(px - 40, py - 40, 80, 80));
 
       if (i === 0) {
-        // Start/finish
         trackG.lineStyle(3, 0xfbbf24, 0.5);
         const perpAngle = a + Math.PI / 2;
         trackG.lineBetween(
-          px + Math.cos(perpAngle) * 34, py + Math.sin(perpAngle) * 34,
-          px - Math.cos(perpAngle) * 34, py - Math.sin(perpAngle) * 34
+          px + Math.cos(perpAngle) * 36, py + Math.sin(perpAngle) * 36,
+          px - Math.cos(perpAngle) * 36, py - Math.sin(perpAngle) * 36
         );
       }
     }
 
-    // Trail graphics layer
     this.trailGraphics = this.add.graphics().setDepth(1);
 
     // Spawn cars
     this.roomPlayers.forEach((p, i) => {
       const startAngle = -Math.PI / 2;
-      const offset = (i - (this.roomPlayers.length - 1) / 2) * 18;
+      const offset = (i - (this.roomPlayers.length - 1) / 2) * 20;
       const sx = this.cx + Math.cos(startAngle) * this.rx;
       const sy = this.cy + Math.sin(startAngle) * this.ry + offset;
       const carColor = Phaser.Display.Color.HexStringToColor(p.color).color;
 
-      const body = this.add.rectangle(0, 0, 22, 12, carColor).setStrokeStyle(1, 0xffffff, 0.3);
+      const bodyRect = this.add.rectangle(0, 0, 22, 12, carColor).setStrokeStyle(1, 0xffffff, 0.3);
       const flameFx = this.add.rectangle(-14, 0, 8, 6, 0xfbbf24).setAlpha(0);
-      const container = this.add.container(sx, sy, [flameFx, body]).setDepth(5);
+      const container = this.add.container(sx, sy, [flameFx, bodyRect]).setDepth(5);
 
       this.cars.push({
-        sprite: container,
-        body,
-        flameFx,
-        angle: 0,
-        speed: 0,
-        laps: 0,
-        checkpoint: 0,
-        nitroActive: false,
-        nitroCooldown: 0,
-        nitroTimer: 0,
-        playerId: p.id,
-        playerName: p.name,
-        color: carColor,
+        sprite: container, bodyRect, flameFx,
+        angle: 0, speed: 0, laps: 0, checkpoint: 0,
+        nitroActive: false, nitroCooldown: 0, nitroTimer: 0,
+        playerId: p.id, playerName: p.name, color: carColor,
         trailPoints: [],
       });
     });
@@ -143,16 +138,29 @@ export default class NitroRaceScene extends Phaser.Scene {
       this.hudTexts.push(txt);
     });
 
-    // Pre-race countdown text
     this.add.text(w / 2, h / 2, 'GET READY', {
       fontSize: '24px', fontFamily: 'Syne', color: '#fbbf24', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(30).setName('preRaceText');
   }
 
+  // Check if car is on the track surface
+  private isOnTrack(x: number, y: number): boolean {
+    const dx = (x - this.cx) / this.rx;
+    const dy = (y - this.cy) / this.ry;
+    const normalizedDist = Math.sqrt(dx * dx + dy * dy);
+    // Should be between inner and outer edge
+    const innerRatio = Math.sqrt(
+      ((x - this.cx) / this.trackInnerRx) ** 2 + ((y - this.cy) / this.trackInnerRy) ** 2
+    );
+    const outerRatio = Math.sqrt(
+      ((x - this.cx) / this.trackOuterRx) ** 2 + ((y - this.cy) / this.trackOuterRy) ** 2
+    );
+    return innerRatio >= 1 && outerRatio <= 1;
+  }
+
   update(_time: number, delta: number) {
     if (this.finished) return;
 
-    // Pre-race delay
     if (!this.raceStarted) {
       this.preRaceTimer -= delta;
       const txt = this.children.getByName('preRaceText') as Phaser.GameObjects.Text;
@@ -170,8 +178,10 @@ export default class NitroRaceScene extends Phaser.Scene {
     const MAX_SPEED = 300;
     const ACCEL = 10;
     const FRICTION = 0.93;
+    const OFF_TRACK_FRICTION = 0.82;
+    const w = Number(this.game.config.width);
+    const h = Number(this.game.config.height);
 
-    // Clear and redraw trails
     this.trailGraphics.clear();
 
     this.cars.forEach((car, idx) => {
@@ -190,15 +200,21 @@ export default class NitroRaceScene extends Phaser.Scene {
       }
       if (car.nitroCooldown > 0) car.nitroCooldown -= delta;
 
-      // Acceleration
       const maxSpd = MAX_SPEED * (car.nitroActive ? 1.8 : 1);
+      const onTrack = this.isOnTrack(car.sprite.x, car.sprite.y);
+      const currentFriction = onTrack ? FRICTION : OFF_TRACK_FRICTION;
+
+      // Acceleration
       if (inp.y < -0.2) {
         car.speed = Math.min(car.speed + ACCEL, maxSpd);
       } else if (inp.y > 0.2) {
         car.speed = Math.max(car.speed - ACCEL * 1.5, -MAX_SPEED * 0.4);
       } else {
-        car.speed *= FRICTION;
+        car.speed *= currentFriction;
       }
+
+      // Off-track speed penalty
+      if (!onTrack) car.speed *= 0.98;
 
       // Steering
       if (Math.abs(car.speed) > 15) {
@@ -211,19 +227,34 @@ export default class NitroRaceScene extends Phaser.Scene {
       car.sprite.y += Math.sin(rad) * car.speed * dt;
       car.sprite.setAngle(car.angle);
 
-      // Clamp
-      const w = Number(this.game.config.width);
-      const h = Number(this.game.config.height);
-      car.sprite.x = Phaser.Math.Clamp(car.sprite.x, 20, w - 20);
-      car.sprite.y = Phaser.Math.Clamp(car.sprite.y, 20, h - 20);
+      // Clamp to screen
+      car.sprite.x = Phaser.Math.Clamp(car.sprite.x, 15, w - 15);
+      car.sprite.y = Phaser.Math.Clamp(car.sprite.y, 15, h - 15);
 
-      // Nitro visual
+      // Car-to-car collision
+      this.cars.forEach(other => {
+        if (other === car) return;
+        const dx = other.sprite.x - car.sprite.x;
+        const dy = other.sprite.y - car.sprite.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 20 && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = (20 - dist) / 2;
+          car.sprite.x -= nx * overlap;
+          car.sprite.y -= ny * overlap;
+          other.sprite.x += nx * overlap;
+          other.sprite.y += ny * overlap;
+          // Speed transfer
+          const avgSpeed = (car.speed + other.speed) / 2;
+          car.speed = avgSpeed * 0.8;
+          other.speed = avgSpeed * 0.8;
+        }
+      });
+
+      // Nitro visuals
       car.flameFx.setAlpha(car.nitroActive ? 0.8 + Math.sin(_time * 0.02) * 0.2 : 0);
-      if (car.nitroActive) {
-        car.body.setFillStyle(0xfbbf24);
-      } else {
-        car.body.setFillStyle(car.color);
-      }
+      car.bodyRect.setFillStyle(car.nitroActive ? 0xfbbf24 : car.color);
 
       // Trail
       if (Math.abs(car.speed) > 30) {
@@ -245,16 +276,15 @@ export default class NitroRaceScene extends Phaser.Scene {
         if (car.checkpoint > 0 && car.checkpoint % this.checkpoints.length === 0) {
           car.laps++;
           playLapComplete();
-          if (car.laps >= this.totalLaps) {
-            this.finishRace(car);
-          }
+          if (car.laps >= this.totalLaps) this.finishRace(car);
         }
       }
 
       // HUD
       if (this.hudTexts[idx]) {
-        const nitroBar = car.nitroActive ? ' ⚡' : car.nitroCooldown > 0 ? ` [${Math.ceil(car.nitroCooldown / 1000)}s]` : ' ⚡RDY';
-        this.hudTexts[idx].setText(`${car.playerName}: Lap ${Math.min(car.laps + 1, this.totalLaps)}/${this.totalLaps}${nitroBar}`);
+        const nitroBar = car.nitroActive ? ' [NITRO]' : car.nitroCooldown > 0 ? ` [${Math.ceil(car.nitroCooldown / 1000)}s]` : ' [RDY]';
+        const trackStatus = onTrack ? '' : ' OFF-TRACK';
+        this.hudTexts[idx].setText(`${car.playerName}: Lap ${Math.min(car.laps + 1, this.totalLaps)}/${this.totalLaps}${nitroBar}${trackStatus}`);
       }
     });
   }
@@ -266,13 +296,12 @@ export default class NitroRaceScene extends Phaser.Scene {
     const h = Number(this.game.config.height);
 
     this.add.rectangle(w / 2, h / 2, w, h, 0x080810, 0.5).setDepth(50);
-    this.add.text(w / 2, h / 2, `🏆 ${winner.playerName} wins!`, {
+    this.add.text(w / 2, h / 2, `${winner.playerName} wins!`, {
       fontSize: '26px', fontFamily: 'Syne', color: '#fbbf24', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(51);
 
     const scores: Record<string, number> = {};
     this.cars.forEach(c => { scores[c.playerName] = c.laps; });
-
     this.time.delayedCall(3000, () => this.onGameOver(winner.playerName, scores));
   }
 }
