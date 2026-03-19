@@ -47,6 +47,18 @@ export default function HostLobby() {
 
   const allReady = players.length >= 2 && players.every(p => p.ready);
 
+  const handleDemoStart = useCallback(() => {
+    if (!selectedGame) return;
+    const demoPlayers: RoomPlayer[] = [
+      { id: 'demo-p1', name: 'You', index: 0, color: '#f5f5f5', ready: true },
+      { id: 'demo-cpu', name: 'CPU', index: 1, color: '#888888', ready: true },
+    ];
+    sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
+      gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
+    }));
+    navigate(`/play/game/${roomCode}`);
+  }, [selectedGame, roomCode, navigate]);
+
   const handleStartGame = useCallback(() => {
     if (!selectedGame || !allReady) return;
 
@@ -168,6 +180,15 @@ export default function HostLobby() {
                   ? 'Waiting for all players to ready up'
                   : `Start ${selectedGameData?.title || 'Game'} →`}
             </button>
+
+            {selectedGame && players.length < 2 && (
+              <button
+                onClick={handleDemoStart}
+                className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11 mt-2"
+              >
+                Demo with CPU →
+              </button>
+            )}
           </div>
         </div>
       </div>
