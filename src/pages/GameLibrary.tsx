@@ -87,6 +87,7 @@ export default function GameLibrary() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {filtered.map(game => (
             <GameCard
+              id={game.id}
               key={game.id}
               title={game.title}
               genre={game.genre}

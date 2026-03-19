@@ -90,8 +90,9 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {GAMES.map((game) => (
-              <div
+              <Link
                 key={game.id}
+                to={`/games/${game.id}`}
                 className="group rounded-[10px] border border-border overflow-hidden hover:border-primary/30 transition-colors duration-150 bg-card"
               >
                 <div className={`aspect-video relative ${game.coverClass}`}>
@@ -108,7 +109,7 @@ export default function Landing() {
                     <span className="text-[10px] font-mono text-muted-foreground">· {game.players} players</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

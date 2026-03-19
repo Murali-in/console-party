@@ -13,6 +13,7 @@ import GameScreen from "./pages/GameScreen";
 import ControllerView from "./pages/ControllerView";
 import GameLibrary from "./pages/GameLibrary";
 import Contribute from "./pages/Contribute";
+import GameDetail from "./pages/GameDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/play/game/:roomCode" element={<GameScreen />} />
                 <Route path="/play/controller/:roomCode" element={<ControllerView />} />
                 <Route path="/games" element={<GameLibrary />} />
+                <Route path="/games/:gameId" element={<GameDetail />} />
                 <Route path="/contribute" element={<Contribute />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
