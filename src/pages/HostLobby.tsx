@@ -21,7 +21,11 @@ export default function HostLobby() {
   const { createRoom, hostRoom } = useRealtime();
   const [roomCode, setRoomCode] = useState('');
   const [players, setPlayers] = useState<RoomPlayer[]>([]);
-  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [selectedGame, setSelectedGame] = useState<string | null>(() => {
+    const pre = sessionStorage.getItem('preselected-game');
+    if (pre) sessionStorage.removeItem('preselected-game');
+    return pre || null;
+  });
   const [countdown, setCountdown] = useState<number | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
