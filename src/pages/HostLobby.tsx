@@ -76,8 +76,9 @@ export default function HostLobby() {
   const handleStartGame = useCallback(() => {
     if (!selectedGame || players.length < 2 || !players.every(p => p.ready)) return;
 
-  const handleStartGame = useCallback(() => {
-    if (!selectedGame || !allReady) return;
+  // was handleStartGame before — now merged
+  const handleMultiStart = useCallback(() => {
+    if (!selectedGame || players.length < 2 || !players.every(p => p.ready)) return;
 
     setCountdown(3);
     playCountdownBeep(false);
