@@ -151,6 +151,7 @@ export default class PlatformFighterScene extends Phaser.Scene {
         f.vy = this.JUMP_VEL;
         f.jumpCount++;
         f.grounded = false;
+        playJump();
       }
 
       // Gravity
