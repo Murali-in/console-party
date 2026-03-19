@@ -17,7 +17,7 @@ export default function GameCard({ id, title, genre, minPlayers, maxPlayers, cov
   const handleClick = onClick || (() => navigate(`/games/${id}`));
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className="group text-left bg-card border border-border rounded-[10px] overflow-hidden hover:border-primary/30 transition-colors duration-150 w-full"
     >
       <div className={`aspect-video relative overflow-hidden ${coverClass || 'bg-secondary'}`}>
