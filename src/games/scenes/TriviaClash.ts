@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playCorrectAnswer, playWrongAnswer, playTriviaSelect } from '@/games/SoundFX';
 
 interface TriviaConfig {
   players: RoomPlayer[];
