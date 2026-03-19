@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRealtime } from '@/contexts/RealtimeContext';
+import { useRealtime, type RoomPlayer } from '@/contexts/RealtimeContext';
 import QRDisplay from '@/components/QRDisplay';
 import PlayerSlot from '@/components/PlayerSlot';
 import Navbar from '@/components/Navbar';
