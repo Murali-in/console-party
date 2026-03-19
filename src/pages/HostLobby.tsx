@@ -201,12 +201,20 @@ export default function HostLobby() {
             </button>
 
             {selectedGame && players.length < 2 && (
-              <button
-                onClick={handleDemoStart}
-                className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11 mt-2"
-              >
-                Demo with CPU →
-              </button>
+              <div className="space-y-2 mt-2">
+                <button
+                  onClick={handleDemoStart}
+                  className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11"
+                >
+                  Demo with Keyboard →
+                </button>
+                <button
+                  onClick={handleSoloPhoneStart}
+                  className="w-full border border-border text-foreground font-heading font-medium py-3 rounded-lg hover:bg-secondary transition-colors text-sm h-11"
+                >
+                  Solo with Phone Controller →
+                </button>
+              </div>
             )}
           </div>
         </div>
