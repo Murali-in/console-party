@@ -11,6 +11,9 @@ const BUTTON_B_LABELS: Record<string, string> = {
   'pong': 'LUNGE',
   'tank-battle': 'AIM',
   'snake-battle': 'SPEED',
+  'platform-fighter': 'JUMP',
+  'maze-runner': 'DASH',
+  'trivia-clash': 'LOCK',
 };
 
 interface ControllerGamepadProps {

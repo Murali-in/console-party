@@ -11,9 +11,12 @@ const BUILT_IN_GAMES = [
   { id: 'pong', title: 'Pong', description: 'Classic 2-player pong. First to 7 points wins.', genre: 'Classic', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, coverClass: 'cover-pong' },
   { id: 'tank-battle', title: 'Tank Battle', description: 'Drive, aim, and shoot. Last tank standing wins.', genre: 'Combat', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-tank-battle' },
   { id: 'snake-battle', title: 'Snake Battle', description: 'Multiplayer snake on a shared grid. Last snake alive wins.', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-snake-battle' },
+  { id: 'platform-fighter', title: 'Brawl Zone', description: 'Platform fighter with double jumps and knockback. First to 5 KOs wins.', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-platform-fighter' },
+  { id: 'maze-runner', title: 'Maze Runner', description: 'Race through procedural mazes, collect coins, find the exit first.', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-maze-runner' },
+  { id: 'trivia-clash', title: 'Trivia Clash', description: '10 rounds of rapid-fire trivia. Point your joystick to answer.', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-trivia-clash' },
 ];
 
-const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Community'];
+const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'Community'];
 
 interface CommunityGame {
   id: string;

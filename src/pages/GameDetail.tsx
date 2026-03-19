@@ -48,6 +48,27 @@ const GAMES_DATA: Record<string, {
     controls: ['Joystick: Change snake direction', 'Button B: Speed boost'],
     rules: ['Eat food (red squares) to grow', 'Crash into walls or any snake = death', 'Last snake alive wins', 'Speed boost makes you faster but harder to control'],
   },
+  'platform-fighter': {
+    title: 'Brawl Zone', genre: 'Fighter', minPlayers: 2, maxPlayers: 4,
+    desc: 'Platform fighter with double jumps, punches, and knockback. Navigate platforms, land hits on opponents, and rack up KOs. First to 5 kills wins.',
+    coverClass: 'cover-platform-fighter',
+    controls: ['Joystick: Move left/right', 'Joystick Up / Button B: Jump (double jump)', 'Button A: Punch attack'],
+    rules: ['First to 5 KOs wins', 'Double jump available', 'Falling off screen = death + respawn', 'Hits deal knockback and damage'],
+  },
+  'maze-runner': {
+    title: 'Maze Runner', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4,
+    desc: 'Race through procedurally generated mazes. Collect gold coins for bonus points and reach the green exit first. 3 rounds with a new maze each time.',
+    coverClass: 'cover-maze-runner',
+    controls: ['Joystick: Move through maze (4 directions)'],
+    rules: ['First to the exit scores 5 points', 'Coins give 1 point each', '3 rounds total', 'Highest total score wins'],
+  },
+  'trivia-clash': {
+    title: 'Trivia Clash', genre: 'Quiz', minPlayers: 2, maxPlayers: 4,
+    desc: '10 rounds of rapid-fire general knowledge trivia. Use your joystick direction to pick one of 4 answers. Faster correct answers score more points.',
+    coverClass: 'cover-trivia-clash',
+    controls: ['Joystick Up: Answer A', 'Joystick Right: Answer B', 'Joystick Down: Answer C', 'Joystick Left: Answer D'],
+    rules: ['10 questions per game', '10 seconds per question', 'Faster answers = more points', 'Highest total score wins'],
+  },
 };
 
 export default function GameDetail() {
