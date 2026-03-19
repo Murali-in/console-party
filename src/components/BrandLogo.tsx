@@ -8,29 +8,28 @@ interface BrandLogoProps {
 
 export default function BrandLogo({ className, compact = false, size = 'sm' }: BrandLogoProps) {
   const sizes = {
-    sm: { box: 'h-9 w-9', symbol: 'text-sm', title: 'text-sm', sub: 'text-[10px]' },
-    md: { box: 'h-12 w-12', symbol: 'text-lg', title: 'text-lg', sub: 'text-[11px]' },
-    lg: { box: 'h-16 w-16', symbol: 'text-2xl', title: 'text-2xl', sub: 'text-xs' },
+    sm: { outer: 'h-9 w-9', stick: 'h-[10px] w-[2px]', knob: 'h-[18px] w-[18px]', symbol: 'text-[8px]', title: 'text-sm', sub: 'text-[10px]' },
+    md: { outer: 'h-12 w-12', stick: 'h-[14px] w-[3px]', knob: 'h-[22px] w-[22px]', symbol: 'text-[10px]', title: 'text-lg', sub: 'text-[11px]' },
+    lg: { outer: 'h-16 w-16', stick: 'h-[18px] w-[3px]', knob: 'h-[28px] w-[28px]', symbol: 'text-xs', title: 'text-2xl', sub: 'text-xs' },
   };
   const s = sizes[size];
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      {/* Console shape with infinity inside */}
-      <div className={cn(
-        s.box,
-        'relative flex items-center justify-center rounded-[6px] border-2 border-foreground bg-foreground text-background overflow-hidden'
-      )}>
-        {/* Screen bezel effect */}
-        <div className="absolute inset-[3px] rounded-[3px] border border-background/20 flex items-center justify-center">
-          <span className={cn(s.symbol, 'font-heading font-extrabold leading-none')}>
-            ∞
-          </span>
+      {/* Joystick icon with infinity in the knob */}
+      <div className={cn(s.outer, 'relative flex flex-col items-center justify-end rounded-[8px] border border-foreground/20 bg-foreground')}>
+        {/* Joystick stick */}
+        <div className="flex flex-col items-center absolute top-[4px]">
+          <div className={cn(s.knob, 'rounded-full bg-background border border-foreground/30 flex items-center justify-center')}>
+            <span className={cn(s.symbol, 'font-heading font-extrabold text-foreground leading-none')}>∞</span>
+          </div>
+          <div className={cn(s.stick, 'bg-background/60 rounded-full -mt-[1px]')} />
         </div>
-        {/* Bottom dots like a console */}
-        <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 flex gap-[2px]">
-          <div className="w-[2px] h-[2px] rounded-full bg-background/40" />
-          <div className="w-[2px] h-[2px] rounded-full bg-background/40" />
+        {/* Base plate dots */}
+        <div className="flex gap-[3px] mb-[4px]">
+          <div className="w-[3px] h-[3px] rounded-full bg-background/30" />
+          <div className="w-[3px] h-[3px] rounded-full bg-background/30" />
+          <div className="w-[3px] h-[3px] rounded-full bg-background/30" />
         </div>
       </div>
       {!compact ? (
