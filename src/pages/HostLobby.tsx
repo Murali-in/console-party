@@ -56,16 +56,21 @@ export default function HostLobby() {
   const hasPlayers = players.length >= 1;
 
   const handleDemoStart = useCallback(() => {
-    if (!selectedGame) return;
-    const demoPlayers: RoomPlayer[] = [
-      { id: 'demo-p1', name: 'You', index: 0, color: '#f5f5f5', ready: true },
-      { id: 'demo-cpu', name: 'CPU', index: 1, color: '#888888', ready: true },
+    if (!selectedGame || !hasPlayers) return;
+    // Use real connected player as P1, add CPU as P2
+    const demoPlayers = [
+      ...players.map((p, i) => ({ ...p, index: i, ready: true })),
+      { id: 'demo-cpu', name: 'CPU', index: players.length, color: '#888888', ready: true },
     ];
     sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-      gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
+      gameId: selectedGame, players: demoPlayers, roomCode, demo: false, soloPhone: true,
     }));
+    channelRef.current?.send({
+      type: 'broadcast', event: 'game-started',
+      payload: { gameId: selectedGame, players: demoPlayers },
+    });
     navigate(`/play/game/${roomCode}`);
-  }, [selectedGame, roomCode, navigate]);
+  }, [selectedGame, hasPlayers, players, roomCode, navigate]);
 
   const handleSoloPhoneStart = useCallback(() => {
     if (!selectedGame) return;
