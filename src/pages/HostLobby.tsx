@@ -66,6 +66,18 @@ export default function HostLobby() {
     navigate(`/play/game/${roomCode}`);
   }, [selectedGame, roomCode, navigate]);
 
+  const handleSoloPhoneStart = useCallback(() => {
+    if (!selectedGame) return;
+    const soloPlayers: RoomPlayer[] = [
+      { id: 'solo-p1', name: 'You', index: 0, color: '#f5f5f5', ready: true },
+      { id: 'demo-cpu', name: 'CPU', index: 1, color: '#888888', ready: true },
+    ];
+    sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
+      gameId: selectedGame, players: soloPlayers, roomCode, soloPhone: true,
+    }));
+    navigate(`/play/game/${roomCode}`);
+  }, [selectedGame, roomCode, navigate]);
+
   const handleStartGame = useCallback(() => {
     if (!selectedGame || !allReady) return;
 
