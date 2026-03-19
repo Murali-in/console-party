@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { RoomPlayer } from '@/contexts/RealtimeContext';
+import { playPunch, playJump, playKO } from '@/games/SoundFX';
 
 interface FighterConfig {
   players: RoomPlayer[];
