@@ -20,6 +20,7 @@ import Admin from "./pages/Admin";
 import AdminReview from "./pages/AdminReview";
 import NotFound from "./pages/NotFound";
 import DeveloperDocs from "./pages/DeveloperDocs";
+import WatchMode from "./pages/WatchMode";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/review" element={<AdminReview />} />
+                <Route path="/watch/:roomCode" element={<WatchMode />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </RealtimeProvider>

@@ -140,6 +140,12 @@ export default function ControllerView() {
         countdown={countdown}
         connectionStatus={connectionStatus}
         onReady={handleReady}
+        onCharacterUpdate={(character) => {
+          // Update local player info with customization
+          if (playerInfo) {
+            setPlayerInfo({ ...playerInfo, name: character.displayName, color: character.color });
+          }
+        }}
       />
     );
   }
