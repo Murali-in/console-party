@@ -1,20 +1,8 @@
 import type { MutableRefObject } from 'react';
 import type { RoomPlayer, PlayerInput } from '@/contexts/RealtimeContext';
-import VirtualJoystick from '@/components/VirtualJoystick';
-import ActionButton from '@/components/ActionButton';
+import DPad from '@/components/DPad';
+import FaceButtons from '@/components/FaceButtons';
 import ConnectionBadge from './ConnectionBadge';
-
-const BUTTON_B_LABELS: Record<string, string> = {
-  'bomb-arena': 'DASH',
-  'nitro-race': 'NITRO',
-  'apex-arena': 'FIRE',
-  'pong': 'LUNGE',
-  'tank-battle': 'AIM',
-  'snake-battle': 'SPEED',
-  'platform-fighter': 'JUMP',
-  'maze-runner': 'DASH',
-  'trivia-clash': 'LOCK',
-};
 
 interface ControllerGamepadProps {
   roomCode: string;
@@ -35,7 +23,26 @@ export default function ControllerGamepad({
   emitInput,
   onJoystickMove,
 }: ControllerGamepadProps) {
-  const buttonBLabel = gameId ? (BUTTON_B_LABELS[gameId] || 'B') : 'B';
+  const handleDPad = (state: { up: boolean; down: boolean; left: boolean; right: boolean }) => {
+    let x = 0, y = 0;
+    if (state.left) x = -1;
+    if (state.right) x = 1;
+    if (state.up) y = -1;
+    if (state.down) y = 1;
+    // Normalize diagonal
+    if (x !== 0 && y !== 0) {
+      x *= 0.707;
+      y *= 0.707;
+    }
+    onJoystickMove({ x, y });
+  };
+
+  const handleBtn = (btn: string, pressed: boolean) => {
+    if (btn === 'A') inputRef.current.buttonA = pressed;
+    if (btn === 'B') inputRef.current.buttonB = pressed;
+    // X and Y can map to buttonA/B combos or be extended later
+    emitInput();
+  };
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col overflow-hidden touch-none select-none">
@@ -56,31 +63,15 @@ export default function ControllerGamepad({
       {gameId && (
         <div className="text-center py-1 shrink-0">
           <span className="text-[10px] text-primary font-mono uppercase tracking-wider">
-            {gameId.replace('-', ' ')}
+            {gameId.replace(/-/g, ' ')}
           </span>
         </div>
       )}
 
       {/* Controller area */}
       <div className="flex-1 flex items-center justify-between px-6">
-        <VirtualJoystick onMove={onJoystickMove} size={130} />
-
-        <div className="flex flex-col items-center gap-4">
-          <ActionButton
-            label="A"
-            size={70}
-            variant="primary"
-            onPress={() => { inputRef.current.buttonA = true; emitInput(); }}
-            onRelease={() => { inputRef.current.buttonA = false; emitInput(); }}
-          />
-          <ActionButton
-            label={buttonBLabel}
-            size={56}
-            variant="secondary"
-            onPress={() => { inputRef.current.buttonB = true; emitInput(); }}
-            onRelease={() => { inputRef.current.buttonB = false; emitInput(); }}
-          />
-        </div>
+        <DPad onInput={handleDPad} size={140} />
+        <FaceButtons onPress={handleBtn} gameId={gameId} />
       </div>
 
       {/* Bottom bar */}
