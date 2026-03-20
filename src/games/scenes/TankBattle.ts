@@ -25,6 +25,7 @@ export default class TankBattleScene extends Phaser.Scene {
   private onGameOver: TankConfig['onGameOver'];
   private inputMap: TankConfig['inputMap'];
   private tanks: Map<string, TankData> = new Map();
+  private nameLabels: Map<string, Phaser.GameObjects.Text> = new Map();
   private bullets: Phaser.GameObjects.Arc[] = [];
   private bulletData: { owner: string; vx: number; vy: number; life: number }[] = [];
   private obstacles: Phaser.GameObjects.Rectangle[] = [];
