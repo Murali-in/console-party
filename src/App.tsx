@@ -19,6 +19,7 @@ import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import AdminReview from "./pages/AdminReview";
 import NotFound from "./pages/NotFound";
+import DeveloperDocs from "./pages/DeveloperDocs";
 
 const queryClient = new QueryClient();
 
