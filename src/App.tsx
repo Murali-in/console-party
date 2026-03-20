@@ -46,6 +46,7 @@ const App = () => (
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/review" element={<AdminReview />} />
+                <Route path="/watch/:roomCode" element={<WatchMode />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </RealtimeProvider>
