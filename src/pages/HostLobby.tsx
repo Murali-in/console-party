@@ -130,6 +130,15 @@ export default function HostLobby() {
           <div className="space-y-8">
             <QRDisplay roomCode={roomCode} />
 
+            {/* Spectator link */}
+            <div className="p-3 rounded-[10px] border border-border bg-card space-y-1">
+              <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Spectator link</p>
+              <p className="font-mono text-xs text-foreground break-all select-all">
+                {window.location.origin}/watch/{roomCode}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Share with remote viewers to watch the game live</p>
+            </div>
+
             <div className="p-4 rounded-[10px] border border-border bg-card space-y-2">
               <h4 className="font-heading text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {hasPlayers ? '✓ Phone connected' : '① Connect your phone first'}
