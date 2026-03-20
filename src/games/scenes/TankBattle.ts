@@ -234,7 +234,7 @@ export default class TankBattleScene extends Phaser.Scene {
     this.gfx.lineStyle(1, 0x6b5fff, 0.15);
     this.gfx.strokeRect(20, 20, w - 40, h - 40);
 
-    this.tanks.forEach((tank) => {
+    this.tanks.forEach((tank, pid) => {
       if (tank.hp <= 0) return;
       const bx = tank.sprite.x - 16;
       const by = tank.sprite.y - 22;
@@ -244,6 +244,9 @@ export default class TankBattleScene extends Phaser.Scene {
       const col = pct > 0.5 ? 0x34d399 : pct > 0.25 ? 0xfbbf24 : 0xf87171;
       this.gfx.fillStyle(col, 1);
       this.gfx.fillRect(bx, by, 32 * pct, 4);
+      // Update name label position
+      const label = this.nameLabels.get(pid);
+      if (label) { label.x = tank.sprite.x; label.y = tank.sprite.y - 28; }
     });
 
     // HUD
