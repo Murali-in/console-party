@@ -6,6 +6,18 @@ import { startMusic, stopMusic, toggleMute, getIsMuted } from '@/games/MusicMana
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
+const BUILT_IN_GAMES = [
+  { id: 'bomb-arena', title: 'Bomb Pass' },
+  { id: 'nitro-race', title: 'Nitro Race' },
+  { id: 'apex-arena', title: 'Apex Arena' },
+  { id: 'pong', title: 'Pong' },
+  { id: 'tank-battle', title: 'Tank Battle' },
+  { id: 'snake-battle', title: 'Snake Battle' },
+  { id: 'platform-fighter', title: 'Brawl Zone' },
+  { id: 'maze-runner', title: 'Maze Runner' },
+  { id: 'trivia-clash', title: 'Trivia Clash' },
+];
+
 interface LocationState {
   gameId: string;
   players: { id: string; name: string; index: number; color: string }[];
@@ -22,6 +34,7 @@ export default function GameScreen() {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
+  const [showGamePicker, setShowGamePicker] = useState(false);
   const keysRef = useRef<Set<string>>(new Set());
   const [soloControllerUrl, setSoloControllerUrl] = useState('');
   const [muted, setMuted] = useState(getIsMuted());
@@ -29,6 +42,7 @@ export default function GameScreen() {
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
+  const [currentGameId, setCurrentGameId] = useState(state?.gameId || '');
 
   const saveScores = useCallback(async (gameId: string, rc: string, w: string, s: Record<string, number>) => {
     if (scoresSavedRef.current) return;
@@ -48,13 +62,51 @@ export default function GameScreen() {
     setMuted(nowMuted);
   };
 
+  // Switch to a different game without disconnecting
+  const handleSwitchGame = useCallback((newGameId: string) => {
+    if (!state || !roomCode) return;
+    destroyGame();
+    scoresSavedRef.current = false;
+    setGameOver(false);
+    setWinner('');
+    setScores({});
+    setShowGamePicker(false);
+    setCurrentGameId(newGameId);
+
+    // Update session storage
+    const newState = { ...state, gameId: newGameId };
+    sessionStorage.setItem(`game-${roomCode}`, JSON.stringify(newState));
+
+    // Notify controllers
+    channelRef.current?.send({
+      type: 'broadcast', event: 'game-started',
+      payload: { gameId: newGameId, players: state.players },
+    });
+
+    startMusic();
+    setTimeout(() => {
+      startGame({
+        gameId: newGameId,
+        containerId: 'game-container',
+        players: state.players,
+        onGameOver: (w, s) => {
+          setGameOver(true);
+          setWinner(w);
+          setScores(s);
+          stopMusic();
+          saveScores(newGameId, roomCode, w, s);
+          channelRef.current?.send({ type: 'broadcast', event: 'game-over', payload: { winner: w, scores: s } });
+        },
+      }).catch(console.error);
+    }, 300);
+  }, [state, roomCode, saveScores]);
+
   useEffect(() => {
     if (!roomCode || !state) {
       navigate('/play/host');
       return;
     }
 
-    // Start background music
     startMusic();
 
     const onGameOver = (w: string, s: Record<string, number>) => {
@@ -86,7 +138,7 @@ export default function GameScreen() {
         if (!p2Id) return;
         const t = Date.now() / 1000;
         let cx = 0, cy = 0, ba = false, bb = false;
-        switch (state.gameId) {
+        switch (currentGameId || state.gameId) {
           case 'snake-battle': { const phase = Math.floor(t * 0.8) % 4; cx = [1, 0, -1, 0][phase]; cy = [0, 1, 0, -1][phase]; break; }
           case 'pong': cy = Math.sin(t * 2) * 0.5; break;
           case 'nitro-race': cy = -0.8; cx = Math.sin(t * 0.6) * 0.7; break;
@@ -179,6 +231,8 @@ export default function GameScreen() {
 
   if (!state) return null;
 
+  const displayGameId = currentGameId || state.gameId;
+
   return (
     <div className="h-screen w-screen bg-background flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-border">
@@ -186,7 +240,7 @@ export default function GameScreen() {
           {state.demo ? 'Demo · Keyboard' : state.soloPhone ? 'Solo · Phone' : `Room ${roomCode}`} · {state.players.length}P
         </span>
         <span className="font-heading text-sm font-semibold text-foreground">
-          {state.gameId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+          {displayGameId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
         </span>
         <div className="flex items-center gap-3">
           <button
@@ -230,8 +284,53 @@ export default function GameScreen() {
                 ))}
               </div>
               <p className="text-[10px] text-muted-foreground font-mono">Scores saved to leaderboard</p>
-              <button onClick={handleBackToLobby} className="bg-primary text-primary-foreground font-medium px-6 py-2 rounded-lg text-sm hover:opacity-90 transition-opacity">
-                Back to Lobby
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setShowGamePicker(true)}
+                  className="bg-secondary text-foreground border border-border font-medium px-6 py-2 rounded-lg text-sm hover:border-primary/30 transition-colors"
+                >
+                  Switch Game
+                </button>
+                <button
+                  onClick={() => handleSwitchGame(displayGameId)}
+                  className="bg-primary text-primary-foreground font-medium px-6 py-2 rounded-lg text-sm hover:opacity-90 transition-opacity"
+                >
+                  Play Again
+                </button>
+                <button onClick={handleBackToLobby} className="text-muted-foreground font-medium px-4 py-2 rounded-lg text-sm hover:text-foreground transition-colors">
+                  End Session
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Game picker overlay */}
+        {showGamePicker && (
+          <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-[60]">
+            <div className="max-w-md w-full mx-4 space-y-4">
+              <h3 className="font-heading text-xl font-bold text-foreground text-center">Pick Next Game</h3>
+              <p className="text-xs text-muted-foreground text-center font-mono">All players stay connected</p>
+              <div className="grid grid-cols-3 gap-2">
+                {BUILT_IN_GAMES.map(g => (
+                  <button
+                    key={g.id}
+                    onClick={() => handleSwitchGame(g.id)}
+                    className={`p-3 rounded-lg border text-center transition-all ${
+                      g.id === displayGameId
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/30'
+                    }`}
+                  >
+                    <span className="font-heading text-xs font-semibold text-foreground block">{g.title}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowGamePicker(false)}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
+              >
+                Cancel
               </button>
             </div>
           </div>
