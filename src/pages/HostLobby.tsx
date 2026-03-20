@@ -195,6 +195,29 @@ export default function HostLobby() {
               </div>
             )}
 
+            {/* Demo with keyboard - always available when game selected */}
+            {selectedGame && (
+              <div className="space-y-2">
+                {!hasPlayers && (
+                  <button
+                    onClick={() => {
+                      const demoPlayers = [
+                        { id: 'demo-p1', name: 'Player 1', index: 0, color: '#6c63ff', ready: true },
+                        { id: 'demo-cpu', name: 'CPU', index: 1, color: '#f87171', ready: true },
+                      ];
+                      sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
+                        gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
+                      }));
+                      navigate(`/play/game/${roomCode}`);
+                    }}
+                    className="w-full bg-secondary text-foreground border border-border font-heading font-semibold py-3 rounded-lg hover:border-primary/30 transition-colors text-sm h-11"
+                  >
+                    Demo with Keyboard (WASD + Space) →
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* No players connected yet */}
             {!hasPlayers && (
               <div className="w-full text-center py-4 rounded-lg border border-dashed border-border">

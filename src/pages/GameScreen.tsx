@@ -128,6 +128,8 @@ export default function GameScreen() {
         onPlayerLeft: () => {},
         onInputUpdate: (input) => {
           updateInput({ ...input, playerId: p1Id, playerIndex: 0 });
+          // Relay input to spectators
+          channel?.send({ type: 'broadcast', event: 'player-input', payload: { ...input, playerId: p1Id, playerIndex: 0 } });
         },
       });
       channelRef.current = channel;
@@ -207,7 +209,11 @@ export default function GameScreen() {
     const channel = hostRoom(roomCode, {
       onPlayerJoined: () => {},
       onPlayerLeft: () => {},
-      onInputUpdate: (input) => updateInput(input),
+      onInputUpdate: (input) => {
+        updateInput(input);
+        // Relay input to spectators
+        channel?.send({ type: 'broadcast', event: 'player-input', payload: input });
+      },
     });
     channelRef.current = channel;
 
