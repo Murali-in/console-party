@@ -257,6 +257,16 @@ export default class SnakeBattleScene extends Phaser.Scene {
         this.gfx.fillStyle(snake.color, alpha * brightness);
         this.gfx.fillRect(seg.x * this.CELL + 1, seg.y * this.CELL + 1, this.CELL - 2, this.CELL - 2);
       });
+      // Name above head
+      if (snake.segments.length > 0) {
+        const head = snake.segments[0];
+        const colorHex = '#' + snake.color.toString(16).padStart(6, '0');
+        this.gfx.fillStyle(snake.color, alpha * 0.6);
+        const tx = head.x * this.CELL + this.CELL / 2;
+        const ty = head.y * this.CELL - 4;
+        // Simple name indicator via small colored rect above head
+        this.gfx.fillRect(tx - 12, ty - 6, 24, 6);
+      }
     });
 
     const info = Array.from(this.snakes.values()).map(s => `${s.name}: ${s.score}`).join('  ');

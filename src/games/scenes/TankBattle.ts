@@ -25,6 +25,7 @@ export default class TankBattleScene extends Phaser.Scene {
   private onGameOver: TankConfig['onGameOver'];
   private inputMap: TankConfig['inputMap'];
   private tanks: Map<string, TankData> = new Map();
+  private nameLabels: Map<string, Phaser.GameObjects.Text> = new Map();
   private bullets: Phaser.GameObjects.Arc[] = [];
   private bulletData: { owner: string; vx: number; vy: number; life: number }[] = [];
   private obstacles: Phaser.GameObjects.Rectangle[] = [];
@@ -91,6 +92,12 @@ export default class TankBattleScene extends Phaser.Scene {
         color,
       });
       this.scores[p.name] = 0;
+
+      const label = this.add.text(sx, sy - 22, p.name.slice(0, 6), {
+        fontFamily: 'JetBrains Mono', fontSize: '9px', color: p.color,
+        backgroundColor: `${p.color}22`, padding: { x: 3, y: 1 },
+      }).setOrigin(0.5, 1).setDepth(10);
+      this.nameLabels.set(p.id, label);
     });
 
     this.hudText = this.add.text(w / 2, 8, '', {
@@ -227,7 +234,7 @@ export default class TankBattleScene extends Phaser.Scene {
     this.gfx.lineStyle(1, 0x6b5fff, 0.15);
     this.gfx.strokeRect(20, 20, w - 40, h - 40);
 
-    this.tanks.forEach((tank) => {
+    this.tanks.forEach((tank, pid) => {
       if (tank.hp <= 0) return;
       const bx = tank.sprite.x - 16;
       const by = tank.sprite.y - 22;
@@ -237,6 +244,9 @@ export default class TankBattleScene extends Phaser.Scene {
       const col = pct > 0.5 ? 0x34d399 : pct > 0.25 ? 0xfbbf24 : 0xf87171;
       this.gfx.fillStyle(col, 1);
       this.gfx.fillRect(bx, by, 32 * pct, 4);
+      // Update name label position
+      const label = this.nameLabels.get(pid);
+      if (label) { label.x = tank.sprite.x; label.y = tank.sprite.y - 28; }
     });
 
     // HUD

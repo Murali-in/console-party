@@ -19,6 +19,7 @@ import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import AdminReview from "./pages/AdminReview";
 import NotFound from "./pages/NotFound";
+import DeveloperDocs from "./pages/DeveloperDocs";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/games" element={<GameLibrary />} />
                 <Route path="/games/:gameId" element={<GameDetail />} />
                 <Route path="/contribute" element={<Contribute />} />
+                <Route path="/developers" element={<DeveloperDocs />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/admin" element={<Admin />} />
