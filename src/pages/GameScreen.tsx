@@ -207,7 +207,11 @@ export default function GameScreen() {
     const channel = hostRoom(roomCode, {
       onPlayerJoined: () => {},
       onPlayerLeft: () => {},
-      onInputUpdate: (input) => updateInput(input),
+      onInputUpdate: (input) => {
+        updateInput(input);
+        // Relay input to spectators
+        channel?.send({ type: 'broadcast', event: 'player-input', payload: input });
+      },
     });
     channelRef.current = channel;
 
