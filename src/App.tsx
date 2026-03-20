@@ -20,6 +20,7 @@ import Admin from "./pages/Admin";
 import AdminReview from "./pages/AdminReview";
 import NotFound from "./pages/NotFound";
 import DeveloperDocs from "./pages/DeveloperDocs";
+import WatchMode from "./pages/WatchMode";
 
 const queryClient = new QueryClient();
 
