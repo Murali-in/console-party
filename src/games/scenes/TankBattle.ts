@@ -92,6 +92,12 @@ export default class TankBattleScene extends Phaser.Scene {
         color,
       });
       this.scores[p.name] = 0;
+
+      const label = this.add.text(sx, sy - 22, p.name.slice(0, 6), {
+        fontFamily: 'JetBrains Mono', fontSize: '9px', color: p.color,
+        backgroundColor: `${p.color}22`, padding: { x: 3, y: 1 },
+      }).setOrigin(0.5, 1).setDepth(10);
+      this.nameLabels.set(p.id, label);
     });
 
     this.hudText = this.add.text(w / 2, 8, '', {
