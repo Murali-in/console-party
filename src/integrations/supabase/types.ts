@@ -22,6 +22,7 @@ export type Database = {
           game_type: string
           genre: string
           id: string
+          is_private: boolean
           max_players: number
           min_players: number
           play_count: number
@@ -35,6 +36,7 @@ export type Database = {
           game_type?: string
           genre: string
           id?: string
+          is_private?: boolean
           max_players?: number
           min_players?: number
           play_count?: number
@@ -48,6 +50,7 @@ export type Database = {
           game_type?: string
           genre?: string
           id?: string
+          is_private?: boolean
           max_players?: number
           min_players?: number
           play_count?: number
