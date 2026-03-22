@@ -20,7 +20,7 @@ export default function Login() {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/play');
+      navigate('/contribute');
     }
   };
 
@@ -29,8 +29,12 @@ export default function Login() {
       <Navbar />
       <div className="pt-32 px-6 max-w-sm mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to your Eternity Console account.</p>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Contributor Login</h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in to submit games and manage your contributions.
+            <br />
+            <span className="text-xs">Players don't need an account — just enter a room code to play.</span>
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,14 +61,14 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign In as Contributor'}
           </button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
           Don't have an account?{' '}
           <Link to="/auth/signup" className="text-primary hover:opacity-80 transition-opacity">
-            Sign up
+            Sign up as Contributor
           </Link>
         </p>
       </div>

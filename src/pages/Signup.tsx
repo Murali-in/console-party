@@ -32,7 +32,7 @@ export default function Signup() {
           <h1 className="font-heading text-2xl font-bold text-foreground">Check your email</h1>
           <p className="text-sm text-muted-foreground">
             We've sent a confirmation link to <strong className="text-foreground">{email}</strong>.
-            Click the link to activate your account.
+            Click the link to activate your contributor account.
           </p>
         </div>
       </div>
@@ -44,8 +44,12 @@ export default function Signup() {
       <Navbar />
       <div className="pt-32 px-6 max-w-sm mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Create an account</h1>
-          <p className="text-sm text-muted-foreground">Join Eternity Console. It's free.</p>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Become a Contributor</h1>
+          <p className="text-sm text-muted-foreground">
+            Create a contributor account to submit games to Eternity Console.
+            <br />
+            <span className="text-xs">Players don't need an account — just enter a room code to play.</span>
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,7 +76,7 @@ export default function Signup() {
             disabled={loading}
             className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {loading ? 'Creating account...' : 'Sign Up as Contributor'}
           </button>
         </form>
 
