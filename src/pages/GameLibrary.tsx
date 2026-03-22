@@ -30,6 +30,7 @@ interface CommunityGame {
   cover_image_url: string | null;
   game_type: string;
   submitter_id: string | null;
+  is_private?: boolean;
   contributor_name?: string;
 }
 
@@ -41,7 +42,7 @@ export default function GameLibrary() {
     const fetchGames = async () => {
       const { data: games } = await supabase.from('approved_games').select('*');
       if (!games) return;
-      // Fetch contributor names for community games
+
       const submitterIds = games.filter(g => g.submitter_id).map(g => g.submitter_id);
       let profileMap: Record<string, string> = {};
       if (submitterIds.length > 0) {
@@ -55,30 +56,38 @@ export default function GameLibrary() {
           });
         }
       }
+
       setCommunityGames(games.map((g: any) => ({
         ...g,
         contributor_name: g.submitter_id ? profileMap[g.submitter_id] || 'Community' : undefined,
       })));
     };
+
     fetchGames();
   }, []);
 
-  // Deduplicate: built-in games take priority over DB entries with same title
   const builtInTitles = new Set(BUILT_IN_GAMES.map(g => g.title.toLowerCase()));
+  const privateOfficialTitles = new Set(
+    communityGames
+      .filter(g => g.game_type === 'official' && g.is_private)
+      .map(g => g.title.toLowerCase()),
+  );
   const uniqueCommunityGames = communityGames.filter(g => !builtInTitles.has(g.title.toLowerCase()));
 
   const allGames = [
-    ...BUILT_IN_GAMES.map(g => ({
-      id: g.id,
-      title: g.title,
-      description: g.description,
-      genre: g.genre,
-      min_players: g.minPlayers,
-      max_players: g.maxPlayers,
-      cover_image_url: null,
-      game_type: g.gameType,
-      coverClass: g.coverClass,
-    })),
+    ...BUILT_IN_GAMES
+      .filter(g => !privateOfficialTitles.has(g.title.toLowerCase()))
+      .map(g => ({
+        id: g.id,
+        title: g.title,
+        description: g.description,
+        genre: g.genre,
+        min_players: g.minPlayers,
+        max_players: g.maxPlayers,
+        cover_image_url: null,
+        game_type: g.gameType,
+        coverClass: g.coverClass,
+      })),
     ...uniqueCommunityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
   ];
 
