@@ -14,6 +14,8 @@ const BUILT_IN_GAMES = [
   { id: 'platform-fighter', title: 'Brawl Zone', description: 'Platform fighter with double jumps and knockback. First to 5 KOs wins.', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-platform-fighter' },
   { id: 'maze-runner', title: 'Maze Runner', description: 'Race through procedural mazes, collect coins, find the exit first.', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-maze-runner' },
   { id: 'trivia-clash', title: 'Trivia Clash', description: '10 rounds of rapid-fire trivia. Point your joystick to answer.', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-trivia-clash' },
+  { id: 'tosios', title: 'TOSIOS', description: 'Top-down multiplayer shooter. Last player alive wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-tosios' },
+  { id: 'kaetram', title: 'Kaetram', description: 'Open-world 2D MMORPG. Explore, fight, quest together.', genre: 'RPG', minPlayers: 1, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-kaetram' },
 ];
 
 const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'Community'];
