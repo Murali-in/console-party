@@ -103,7 +103,7 @@ export default function GameScreen() {
 
   useEffect(() => {
     if (!roomCode || !state) {
-      navigate('/play/host');
+      navigate('/host');
       return;
     }
 
