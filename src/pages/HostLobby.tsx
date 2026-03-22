@@ -64,8 +64,9 @@ export default function HostLobby() {
       ...players.map((p, i) => ({ ...p, index: i, ready: true })),
       { id: 'demo-cpu', name: 'CPU', index: players.length, color: '#888888', ready: true },
     ];
+    const meta = getGameMeta(selectedGame);
     sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-      gameId: selectedGame, players: soloPlayers, roomCode, soloPhone: true,
+      gameId: selectedGame, ...meta, players: soloPlayers, roomCode, soloPhone: true,
     }));
     channelRef.current?.send({
       type: 'broadcast', event: 'game-started',
