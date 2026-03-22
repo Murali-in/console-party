@@ -116,7 +116,7 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
           width: armW,
           height: armH,
           top: 0,
-          background: pressed.up ? 'rgba(107,95,255,0.5)' : 'transparent',
+          background: pressed.up ? 'rgba(191,191,191,0.4)' : 'transparent',
         }}
       >
         <span className={`text-lg ${pressed.up ? 'text-foreground' : 'text-muted-foreground/40'}`}>▲</span>
@@ -129,7 +129,7 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
           width: armW,
           height: armH,
           bottom: 0,
-          background: pressed.down ? 'rgba(107,95,255,0.5)' : 'transparent',
+          background: pressed.down ? 'rgba(191,191,191,0.4)' : 'transparent',
         }}
       >
         <span className={`text-lg ${pressed.down ? 'text-foreground' : 'text-muted-foreground/40'}`}>▼</span>
@@ -142,7 +142,7 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
           width: armH,
           height: armW,
           left: 0,
-          background: pressed.left ? 'rgba(107,95,255,0.5)' : 'transparent',
+          background: pressed.left ? 'rgba(191,191,191,0.4)' : 'transparent',
         }}
       >
         <span className={`text-lg ${pressed.left ? 'text-foreground' : 'text-muted-foreground/40'}`}>◀</span>
@@ -155,7 +155,7 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
           width: armH,
           height: armW,
           right: 0,
-          background: pressed.right ? 'rgba(107,95,255,0.5)' : 'transparent',
+          background: pressed.right ? 'rgba(191,191,191,0.4)' : 'transparent',
         }}
       >
         <span className={`text-lg ${pressed.right ? 'text-foreground' : 'text-muted-foreground/40'}`}>▶</span>

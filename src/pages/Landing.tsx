@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { supabase } from '@/integrations/supabase/client';
 
 const GAMES = [
   { id: 'bomb-arena', title: 'Bomb Pass', genre: 'Party', players: '2–4', coverClass: 'cover-bomb-arena' },
@@ -23,7 +25,27 @@ const STEPS = [
 const DEVICE_TAGS = ['TV', 'Laptop', 'Phone', 'Tablet', 'Car display'];
 const ENGINES = ['HTML5', 'Phaser 3', 'Unity', 'Godot', 'Unreal'];
 
+interface Contributor {
+  username: string | null;
+  email: string;
+  avatar_url: string | null;
+  role: string;
+}
+
 export default function Landing() {
+  const [contributors, setContributors] = useState<Contributor[]>([]);
+
+  useEffect(() => {
+    // Fetch real contributors (users who have submitted games or are developers/admin)
+    supabase
+      .from('profiles')
+      .select('username, email, avatar_url, role')
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (data) setContributors(data as Contributor[]);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -157,6 +179,46 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Contributors — real data from database */}
+      {contributors.length > 0 && (
+        <section className="py-16 px-6 border-t border-border">
+          <div className="max-w-5xl mx-auto">
+            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">
+              Contributors of Eternity
+            </span>
+            <p className="text-xs text-muted-foreground mt-2 mb-8">
+              The people building and shaping Eternity Console.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {contributors.map((c, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 bg-card border border-border rounded-lg px-4 py-2.5"
+                >
+                  {c.avatar_url ? (
+                    <img src={c.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {(c.username || c.email)[0]?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-heading text-xs font-semibold text-foreground block leading-tight">
+                      {c.username || c.email.split('@')[0]}
+                    </span>
+                    <span className="font-mono text-[9px] text-muted-foreground uppercase">
+                      {c.role === 'admin' ? 'Admin' : c.role === 'developer' ? 'Developer' : 'Member'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>
