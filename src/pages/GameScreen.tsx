@@ -103,7 +103,7 @@ export default function GameScreen() {
 
   useEffect(() => {
     if (!roomCode || !state) {
-      navigate('/play/host');
+      navigate('/host');
       return;
     }
 
@@ -232,7 +232,7 @@ export default function GameScreen() {
 
   const handleBackToLobby = () => {
     sessionStorage.removeItem(`game-${roomCode}`);
-    navigate('/play/host');
+    navigate('/host');
   };
 
   if (!state) return null;

@@ -7,6 +7,8 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import ControllerLobby from '@/components/controller/ControllerLobby';
 import ControllerGamepad from '@/components/controller/ControllerGamepad';
 
+type GamePhase = 'playing' | 'paused' | 'gameover' | 'waiting';
+
 export default function ControllerView() {
   const { roomCode } = useParams<{ roomCode: string }>();
   const { joinRoom, sendInput, sendReady, leaveRoom } = useRealtime();
@@ -18,6 +20,9 @@ export default function ControllerView() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting');
+  const [gamePhase, setGamePhase] = useState<GamePhase>('playing');
+  const [winner, setWinner] = useState('');
+  const [scores, setScores] = useState<Record<string, number>>({});
   const inputRef = useRef<PlayerInput>({
     playerId: '',
     playerIndex: 0,
@@ -67,12 +72,24 @@ export default function ControllerView() {
           setGameStarted(true);
           setGameId(gid);
           setCountdown(null);
+          setGamePhase('playing');
         },
         onGameEvent: () => {},
-        onGameOver: () => {
-          setGameStarted(false);
-          setGameId(null);
-          setIsReady(false);
+        onGameOver: (w, s) => {
+          setGamePhase('gameover');
+          setWinner(w ? `${w} wins!` : 'Game Over');
+          setScores(s || {});
+          // After 3 seconds, switch to waiting phase
+          setTimeout(() => {
+            setGamePhase('waiting');
+            // After another 3 seconds, go back to lobby
+            setTimeout(() => {
+              setGameStarted(false);
+              setGameId(null);
+              setIsReady(false);
+              setGamePhase('playing');
+            }, 3000);
+          }, 3000);
         },
         onCountdown: (count) => {
           setCountdown(count);
@@ -141,7 +158,6 @@ export default function ControllerView() {
         connectionStatus={connectionStatus}
         onReady={handleReady}
         onCharacterUpdate={(character) => {
-          // Update local player info with customization
           if (playerInfo) {
             setPlayerInfo({ ...playerInfo, name: character.displayName, color: character.color });
           }
@@ -159,6 +175,9 @@ export default function ControllerView() {
       inputRef={inputRef}
       emitInput={emitInput}
       onJoystickMove={handleJoystick}
+      gamePhase={gamePhase}
+      winner={winner}
+      scores={scores}
     />
   );
 }

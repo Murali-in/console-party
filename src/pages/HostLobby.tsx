@@ -69,7 +69,7 @@ export default function HostLobby() {
       type: 'broadcast', event: 'game-started',
       payload: { gameId: selectedGame, players: soloPlayers },
     });
-    navigate(`/play/game/${roomCode}`);
+    navigate(`/game/${roomCode}`);
   }, [selectedGame, hasPlayers, players, roomCode, navigate]);
 
   // Multiplayer: 2+ players all ready
@@ -100,7 +100,7 @@ export default function HostLobby() {
           type: 'broadcast', event: 'game-started',
           payload: { gameId: selectedGame, players },
         });
-        setTimeout(() => navigate(`/play/game/${roomCode}`), 600);
+        setTimeout(() => navigate(`/game/${roomCode}`), 600);
       }
     }, 1000);
   }, [selectedGame, allReadyMulti, players, roomCode, navigate]);
@@ -208,7 +208,7 @@ export default function HostLobby() {
                       sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
                         gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
                       }));
-                      navigate(`/play/game/${roomCode}`);
+                      navigate(`/game/${roomCode}`);
                     }}
                     className="w-full bg-secondary text-foreground border border-border font-heading font-semibold py-3 rounded-lg hover:border-primary/30 transition-colors text-sm h-11"
                   >

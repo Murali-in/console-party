@@ -21,6 +21,7 @@ const STEPS = [
 ];
 
 const DEVICE_TAGS = ['TV', 'Laptop', 'Phone', 'Tablet', 'Car display'];
+const ENGINES = ['HTML5', 'Phaser 3', 'Unity', 'Godot', 'Unreal'];
 
 export default function Landing() {
   return (
@@ -46,9 +47,9 @@ export default function Landing() {
             <div className="flex items-center gap-3 pt-4">
               <Link
                 to="/play"
-                className="bg-primary text-background font-heading font-semibold px-7 rounded-lg hover:opacity-90 transition-opacity text-sm h-11 inline-flex items-center"
+                className="bg-primary text-primary-foreground font-heading font-semibold px-7 rounded-lg hover:opacity-90 transition-opacity text-sm h-11 inline-flex items-center"
               >
-                Start a game
+                Start a game →
               </Link>
               <Link
                 to="/games"
@@ -118,15 +119,23 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Community */}
+      {/* Contribute */}
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div className="space-y-5">
-            <h2 className="font-heading text-[28px] font-bold text-foreground leading-tight">A growing platform.</h2>
+            <h2 className="font-heading text-[28px] font-bold text-foreground leading-tight">Build for Eternity.</h2>
             <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Submit your game. Once reviewed, it goes live to all Eternity players
-              with a Community badge. Real players, zero friction.
+              Submit your GitHub repo or Unity build. We handle multiplayer,
+              hosting, and security scanning. Once reviewed, your game goes
+              live to all players with a Community badge.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {ENGINES.map(e => (
+                <span key={e} className="text-[10px] font-mono text-muted-foreground border border-border rounded-full px-3 py-1">
+                  {e}
+                </span>
+              ))}
+            </div>
             <Link
               to="/contribute"
               className="inline-flex items-center gap-2 text-foreground text-sm font-heading font-semibold hover:text-primary transition-colors duration-150 border border-border rounded-lg px-5 py-2 mt-2"
@@ -138,7 +147,7 @@ export default function Landing() {
             {[
               { val: '9', label: 'games' },
               { val: '2–4', label: 'players' },
-              { val: '0', label: 'downloads' },
+              { val: '∞', label: 'screens' },
             ].map(stat => (
               <div key={stat.label} className="text-center space-y-1">
                 <div className="font-heading text-2xl font-bold text-foreground">{stat.val}</div>
