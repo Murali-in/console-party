@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LeaderboardEntry {
   player_name: string;
@@ -11,9 +12,22 @@ interface LeaderboardEntry {
   played_at: string;
 }
 
+interface ApprovedGameRecord {
+  id: string;
+  is_private: boolean;
+}
+
 const GAMES_DATA: Record<string, {
-  title: string; genre: string; minPlayers: number; maxPlayers: number;
-  desc: string; coverClass: string; controls: string[]; rules: string[];
+  title: string;
+  genre: string;
+  minPlayers: number;
+  maxPlayers: number;
+  desc: string;
+  coverClass: string;
+  controls: string[];
+  rules: string[];
+  sourceUrl?: string;
+  githubUrl?: string;
 }> = {
   'bomb-arena': {
     title: 'Bomb Pass', genre: 'Party', minPlayers: 2, maxPlayers: 4,
@@ -78,17 +92,40 @@ const GAMES_DATA: Record<string, {
     controls: ['Joystick Up: Answer A', 'Joystick Right: Answer B', 'Joystick Down: Answer C', 'Joystick Left: Answer D'],
     rules: ['10 questions per game', '10 seconds per question', 'Faster answers = more points', 'Highest total score wins'],
   },
+  'tosios': {
+    title: 'TOSIOS', genre: 'Shooter', minPlayers: 2, maxPlayers: 4,
+    desc: 'Official embedded multiplayer shooter loaded from its live open-source deployment.',
+    coverClass: 'cover-tosios',
+    controls: ['D-Pad / WASD: Move', 'A / Space: Main action', 'B / Shift: Secondary action'],
+    rules: ['Loaded from the live TOSIOS site inside a sandboxed iframe', 'Use Eternity Console to launch the session on the host screen', 'Phones can join the room as controllers while the game is displayed on the shared screen'],
+    sourceUrl: 'https://tosios.online',
+    githubUrl: 'https://github.com/halftheopposite/TOSIOS',
+  },
+  'kaetram': {
+    title: 'Kaetram', genre: 'RPG', minPlayers: 1, maxPlayers: 4,
+    desc: 'Official embedded 2D MMORPG loaded from its live open-source deployment.',
+    coverClass: 'cover-kaetram',
+    controls: ['D-Pad / WASD: Move', 'A / Space: Main action', 'B / Shift: Secondary action'],
+    rules: ['Loaded from the live Kaetram site inside a sandboxed iframe', 'Use Eternity Console to launch the session on the host screen', 'Phones can join the room as controllers while the game is displayed on the shared screen'],
+    sourceUrl: 'https://kaetram.com',
+    githubUrl: 'https://github.com/Kaetram/Kaetram-Open',
+  },
 };
 
 export default function GameDetail() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const game = gameId ? GAMES_DATA[gameId] : null;
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingLb, setLoadingLb] = useState(true);
+  const [approvedRecord, setApprovedRecord] = useState<ApprovedGameRecord | null>(null);
+  const [adminBusy, setAdminBusy] = useState(false);
 
   useEffect(() => {
     if (!gameId) return;
+
+    setLoadingLb(true);
     supabase
       .from('leaderboards')
       .select('player_name, score, is_winner, played_at')
@@ -101,6 +138,17 @@ export default function GameDetail() {
         setLoadingLb(false);
       });
   }, [gameId]);
+
+  useEffect(() => {
+    if (!game?.title) return;
+
+    supabase
+      .from('approved_games')
+      .select('id, is_private')
+      .eq('title', game.title)
+      .maybeSingle()
+      .then(({ data }) => setApprovedRecord((data as ApprovedGameRecord) || null));
+  }, [game?.title]);
 
   if (!game) {
     return (
@@ -120,6 +168,26 @@ export default function GameDetail() {
     navigate('/play/host');
   };
 
+  const handleTogglePrivate = async () => {
+    if (!approvedRecord) return;
+    setAdminBusy(true);
+    const nextValue = !approvedRecord.is_private;
+    await supabase.from('approved_games').update({ is_private: nextValue } as any).eq('id', approvedRecord.id);
+    setApprovedRecord({ ...approvedRecord, is_private: nextValue });
+    setAdminBusy(false);
+  };
+
+  const handleDelete = async () => {
+    if (!approvedRecord) return;
+    const confirmed = window.confirm(`Delete ${game.title} from the game library?`);
+    if (!confirmed) return;
+
+    setAdminBusy(true);
+    await supabase.from('approved_games').delete().eq('id', approvedRecord.id);
+    setAdminBusy(false);
+    navigate('/games');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -128,29 +196,62 @@ export default function GameDetail() {
           ← Back to library
         </Link>
 
-        {/* Hero */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <div className={`aspect-video rounded-[10px] overflow-hidden border border-border ${game.coverClass}`} />
           <div className="space-y-4 flex flex-col justify-center">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary">Official</span>
               <span className="text-[10px] font-mono text-muted-foreground">{game.genre}</span>
+              {approvedRecord?.is_private && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">Private</span>
+              )}
             </div>
             <h1 className="font-heading text-3xl font-bold text-foreground">{game.title}</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">{game.desc}</p>
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex items-center gap-4 pt-2 flex-wrap">
               <span className="font-mono text-xs text-muted-foreground">{game.minPlayers}–{game.maxPlayers} players</span>
+              {game.sourceUrl && (
+                <a href={game.sourceUrl} target="_blank" rel="noreferrer" className="font-mono text-xs text-primary hover:opacity-80">
+                  Live site →
+                </a>
+              )}
+              {game.githubUrl && (
+                <a href={game.githubUrl} target="_blank" rel="noreferrer" className="font-mono text-xs text-primary hover:opacity-80">
+                  GitHub →
+                </a>
+              )}
             </div>
-            <button
-              onClick={handleStartGame}
-              className="bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm w-fit mt-2"
-            >
-              Start this game →
-            </button>
+            <div className="flex items-center gap-3 flex-wrap pt-2">
+              <button
+                onClick={handleStartGame}
+                className="bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm w-fit"
+              >
+                Start this game →
+              </button>
+              {isAdmin && approvedRecord && (
+                <>
+                  <button
+                    type="button"
+                    disabled={adminBusy}
+                    onClick={handleTogglePrivate}
+                    className="bg-secondary text-secondary-foreground border border-border font-heading font-semibold px-4 py-3 rounded-lg hover:bg-muted transition-colors text-sm disabled:opacity-50"
+                  >
+                    {approvedRecord.is_private ? 'Make Public' : 'Make Private'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={adminBusy}
+                    onClick={handleDelete}
+                    className="bg-destructive/10 text-destructive border border-destructive/30 font-heading font-semibold px-4 py-3 rounded-lg hover:bg-destructive/20 transition-colors text-sm disabled:opacity-50"
+                  >
+                    Delete Game
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Controls + Rules */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <div className="p-6 rounded-[10px] border border-border bg-card space-y-4">
             <h2 className="font-heading text-lg font-semibold text-foreground">Controls</h2>
@@ -176,7 +277,6 @@ export default function GameDetail() {
           </div>
         </div>
 
-        {/* Leaderboard */}
         <div className="p-6 rounded-[10px] border border-border bg-card space-y-4">
           <h2 className="font-heading text-lg font-semibold text-foreground">🏆 Top Scores</h2>
           {loadingLb ? (
