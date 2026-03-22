@@ -82,8 +82,12 @@ export default function GameScreen() {
     setShowGamePicker(false);
     setCurrentGameId(newGameId);
 
+    const newMeta = BUILT_IN_GAMES.find(g => g.id === newGameId);
+    const newType = newMeta?.type === 'iframe' ? 'iframe' : 'phaser';
+    const newUrl = newMeta?.type === 'iframe' ? (newMeta as any).url : undefined;
+
     // Update session storage
-    const newState = { ...state, gameId: newGameId };
+    const newState = { ...state, gameId: newGameId, gameType: newType, iframeUrl: newUrl };
     sessionStorage.setItem(`game-${roomCode}`, JSON.stringify(newState));
 
     // Notify controllers
@@ -92,22 +96,25 @@ export default function GameScreen() {
       payload: { gameId: newGameId, players: state.players },
     });
 
-    startMusic();
-    setTimeout(() => {
-      startGame({
-        gameId: newGameId,
-        containerId: 'game-container',
-        players: state.players,
-        onGameOver: (w, s) => {
-          setGameOver(true);
-          setWinner(w);
-          setScores(s);
-          stopMusic();
-          saveScores(newGameId, roomCode, w, s);
-          channelRef.current?.send({ type: 'broadcast', event: 'game-over', payload: { winner: w, scores: s } });
-        },
-      }).catch(console.error);
-    }, 300);
+    // Only start Phaser for non-iframe games
+    if (newType !== 'iframe') {
+      startMusic();
+      setTimeout(() => {
+        startGame({
+          gameId: newGameId,
+          containerId: 'game-container',
+          players: state.players,
+          onGameOver: (w, s) => {
+            setGameOver(true);
+            setWinner(w);
+            setScores(s);
+            stopMusic();
+            saveScores(newGameId, roomCode, w, s);
+            channelRef.current?.send({ type: 'broadcast', event: 'game-over', payload: { winner: w, scores: s } });
+          },
+        }).catch(console.error);
+      }, 300);
+    }
   }, [state, roomCode, saveScores]);
 
   useEffect(() => {
