@@ -18,7 +18,7 @@ export default function Play() {
     const trimmedName = playerName.trim().slice(0, 20);
     if (joinCode.length !== 6 || !trimmedName) return;
     sessionStorage.setItem('ec_name', trimmedName);
-    navigate(`/play/controller/${joinCode}?name=${encodeURIComponent(trimmedName)}`);
+    navigate(`/join/${joinCode}?name=${encodeURIComponent(trimmedName)}`);
   };
 
   if (isHost) {
@@ -32,7 +32,7 @@ export default function Play() {
           </div>
 
           <button
-            onClick={() => navigate('/play/host')}
+            onClick={() => navigate('/host')}
             className="h-11 w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             Start a Game

@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { forwardRef, useEffect, useState } from 'react';
 import BrandLogo from '@/components/BrandLogo';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { user, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -31,14 +33,34 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
             Games
           </Link>
           <Link to="/contribute" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+            Contribute
+          </Link>
+          <Link to="/developers" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Developers
           </Link>
+          {isAdmin && (
+            <Link to="/admin" className="font-heading text-xs font-medium text-primary transition-colors hover:text-primary/80">
+              Admin
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/auth/login" className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-            Log in
-          </Link>
+          {user ? (
+            <>
+              <span className="text-[10px] font-mono text-muted-foreground hidden md:block">{user.email}</span>
+              <button
+                onClick={() => signOut()}
+                className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <Link to="/auth/login" className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+              Log in
+            </Link>
+          )}
           <Link
             to="/play"
             className="inline-flex h-9 items-center rounded-lg bg-primary px-4 py-2 font-heading text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"

@@ -208,7 +208,7 @@ export default function HostLobby() {
                       sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
                         gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
                       }));
-                      navigate(`/play/game/${roomCode}`);
+                      navigate(`/game/${roomCode}`);
                     }}
                     className="w-full bg-secondary text-foreground border border-border font-heading font-semibold py-3 rounded-lg hover:border-primary/30 transition-colors text-sm h-11"
                   >
