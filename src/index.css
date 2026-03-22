@@ -223,7 +223,7 @@
       linear-gradient(0deg, transparent 54%, rgba(255,255,255,0.06) 54%, rgba(255,255,255,0.06) 55%, transparent 55%),
       linear-gradient(0deg, transparent 34%, rgba(255,255,255,0.04) 34%, rgba(255,255,255,0.04) 35%, transparent 35%),
       radial-gradient(circle at 30% 70%, rgba(248,113,113,0.1) 0%, transparent 35%),
-      radial-gradient(circle at 70% 70%, rgba(107,95,255,0.1) 0%, transparent 35%);
+      radial-gradient(circle at 70% 70%, rgba(191,191,191,0.1) 0%, transparent 35%);
   }
 
   /* Maze Runner: dark with grid maze pattern */
