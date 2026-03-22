@@ -214,8 +214,9 @@ export default function HostLobby() {
                         { id: 'demo-p1', name: 'Player 1', index: 0, color: '#bfbfbf', ready: true },
                         { id: 'demo-cpu', name: 'CPU', index: 1, color: '#f87171', ready: true },
                       ];
+                      const meta = getGameMeta(selectedGame);
                       sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-                        gameId: selectedGame, players: demoPlayers, roomCode, demo: true,
+                        gameId: selectedGame, ...meta, players: demoPlayers, roomCode, demo: true,
                       }));
                       navigate(`/game/${roomCode}`);
                     }}
