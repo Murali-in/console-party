@@ -17,6 +17,7 @@ interface Submission {
   status: string;
   admin_notes: string | null;
   submitted_at: string;
+  submitter_id: string;
 }
 
 export default function AdminReview() {
@@ -26,22 +27,24 @@ export default function AdminReview() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleteTitle, setDeleteTitle] = useState('');
 
   useEffect(() => {
     if (!loading && !isAdmin) navigate('/');
   }, [isAdmin, loading, navigate]);
 
   const fetchSubmissions = async () => {
-    const { data } = await supabase
-      .from('submitted_games')
-      .select('*')
-      .order('submitted_at', { ascending: false });
+    let q = supabase.from('submitted_games').select('*').order('submitted_at', { ascending: false });
+    if (filter !== 'all') q = q.eq('status', filter);
+    const { data } = await q;
     if (data) setSubmissions(data as Submission[]);
   };
 
   useEffect(() => {
     if (isAdmin) fetchSubmissions();
-  }, [isAdmin]);
+  }, [isAdmin, filter]);
 
   const handleAction = async (id: string, status: string) => {
     setActionLoading(true);
@@ -49,11 +52,7 @@ export default function AdminReview() {
 
     await supabase
       .from('submitted_games')
-      .update({
-        status,
-        admin_notes: notes || null,
-        reviewed_at: new Date().toISOString(),
-      } as any)
+      .update({ status, admin_notes: notes || null, reviewed_at: new Date().toISOString() } as any)
       .eq('id', id);
 
     if (status === 'approved' && sub) {
@@ -65,6 +64,7 @@ export default function AdminReview() {
         max_players: sub.max_players,
         cover_image_url: sub.cover_image_url,
         game_type: 'community',
+        submitter_id: sub.submitter_id,
       } as any);
     }
 
@@ -74,23 +74,59 @@ export default function AdminReview() {
     fetchSubmissions();
   };
 
+  const handleDelete = async (id: string) => {
+    const sub = submissions.find(s => s.id === id);
+    if (!sub || deleteTitle !== sub.title) return;
+    setActionLoading(true);
+    // Delete from approved_games if it was approved
+    await supabase.from('approved_games').delete().eq('title', sub.title);
+    // Delete submission
+    await supabase.from('submitted_games').delete().eq('id', id);
+    setConfirmDelete(null);
+    setDeleteTitle('');
+    setActionLoading(false);
+    fetchSubmissions();
+  };
+
   if (loading || !isAdmin) return null;
 
   const statusColor = (s: string) => {
-    if (s === 'approved') return 'text-success';
+    if (s === 'approved') return 'text-green-400';
     if (s === 'rejected') return 'text-destructive';
     if (s === 'pending') return 'text-primary';
     return 'text-muted-foreground';
   };
 
+  const filters: { key: typeof filter; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'approved', label: 'Approved' },
+    { key: 'rejected', label: 'Rejected' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-20 px-6 max-w-4xl mx-auto">
-        <h1 className="font-heading text-3xl font-bold mb-8 text-foreground">Review Queue</h1>
+        <h1 className="font-heading text-3xl font-bold mb-6 text-foreground">Review Queue</h1>
+
+        {/* Filter tabs */}
+        <div className="flex gap-2 mb-6">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-4 py-1.5 text-xs rounded-lg font-heading font-medium transition-colors ${
+                filter === f.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-muted'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
         {submissions.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No submissions yet.</p>
+          <p className="text-muted-foreground text-sm">No submissions found.</p>
         ) : (
           <div className="space-y-3">
             {submissions.map(sub => (
@@ -128,40 +164,84 @@ export default function AdminReview() {
                       )}
                     </div>
 
-                    {sub.status === 'pending' && (
-                      <>
-                        <textarea
-                          value={notes}
-                          onChange={e => setNotes(e.target.value)}
-                          placeholder="Admin notes (optional)"
-                          rows={2}
-                          className="w-full bg-secondary border border-border rounded-lg px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                        />
-                        <div className="flex gap-3">
+                    {/* Admin notes input */}
+                    <textarea
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                      placeholder="Admin notes (optional)"
+                      rows={2}
+                      className="w-full bg-secondary border border-border rounded-lg px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                    />
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      {sub.status !== 'approved' && (
+                        <button
+                          onClick={() => handleAction(sub.id, 'approved')}
+                          disabled={actionLoading}
+                          className="bg-green-500/20 text-green-400 border border-green-500/30 font-medium px-4 py-2 rounded-lg text-xs hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                        >
+                          ✓ Approve & Publish
+                        </button>
+                      )}
+                      {sub.status !== 'rejected' && (
+                        <button
+                          onClick={() => handleAction(sub.id, 'rejected')}
+                          disabled={actionLoading}
+                          className="bg-destructive/20 text-destructive border border-destructive/30 font-medium px-4 py-2 rounded-lg text-xs hover:bg-destructive/30 transition-colors disabled:opacity-50"
+                        >
+                          ✗ Reject
+                        </button>
+                      )}
+                      {sub.status === 'approved' && (
+                        <button
+                          onClick={() => handleAction(sub.id, 'pending')}
+                          disabled={actionLoading}
+                          className="bg-secondary text-foreground border border-border font-medium px-4 py-2 rounded-lg text-xs hover:bg-muted transition-colors disabled:opacity-50"
+                        >
+                          Make Private
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleAction(sub.id, 'needs_revision')}
+                        disabled={actionLoading}
+                        className="bg-secondary text-secondary-foreground border border-border font-medium px-4 py-2 rounded-lg text-xs hover:bg-muted transition-colors disabled:opacity-50"
+                      >
+                        Request Changes
+                      </button>
+
+                      {/* Delete with confirmation */}
+                      {confirmDelete === sub.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            value={deleteTitle}
+                            onChange={e => setDeleteTitle(e.target.value)}
+                            placeholder={`Type "${sub.title}" to confirm`}
+                            className="bg-secondary border border-destructive/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none w-48"
+                          />
                           <button
-                            onClick={() => handleAction(sub.id, 'approved')}
-                            disabled={actionLoading}
-                            className="bg-success/20 text-success font-medium px-4 py-2 rounded-lg text-sm hover:bg-success/30 transition-colors disabled:opacity-50"
+                            onClick={() => handleDelete(sub.id)}
+                            disabled={actionLoading || deleteTitle !== sub.title}
+                            className="bg-destructive text-destructive-foreground font-medium px-3 py-2 rounded-lg text-xs disabled:opacity-30"
                           >
-                            Approve
+                            Confirm Delete
                           </button>
                           <button
-                            onClick={() => handleAction(sub.id, 'rejected')}
-                            disabled={actionLoading}
-                            className="bg-destructive/20 text-destructive font-medium px-4 py-2 rounded-lg text-sm hover:bg-destructive/30 transition-colors disabled:opacity-50"
+                            onClick={() => { setConfirmDelete(null); setDeleteTitle(''); }}
+                            className="text-xs text-muted-foreground hover:text-foreground"
                           >
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleAction(sub.id, 'needs_revision')}
-                            disabled={actionLoading}
-                            className="bg-secondary text-secondary-foreground font-medium px-4 py-2 rounded-lg text-sm hover:bg-muted transition-colors disabled:opacity-50"
-                          >
-                            Request Changes
+                            Cancel
                           </button>
                         </div>
-                      </>
-                    )}
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDelete(sub.id)}
+                          className="bg-destructive/10 text-destructive border border-destructive/20 font-medium px-4 py-2 rounded-lg text-xs hover:bg-destructive/20 transition-colors"
+                        >
+                          Delete Game
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
