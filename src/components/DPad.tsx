@@ -142,7 +142,7 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
           width: armH,
           height: armW,
           left: 0,
-          background: pressed.left ? 'rgba(107,95,255,0.5)' : 'transparent',
+          background: pressed.left ? 'rgba(191,191,191,0.4)' : 'transparent',
         }}
       >
         <span className={`text-lg ${pressed.left ? 'text-foreground' : 'text-muted-foreground/40'}`}>◀</span>
