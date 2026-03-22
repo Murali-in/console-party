@@ -112,6 +112,7 @@ export default function HostLobby() {
     return { gameType: g?.type === 'iframe' ? 'iframe' : 'phaser', iframeUrl: g?.type === 'iframe' ? (g as any).url : undefined };
   };
 
+  const selectedGameData = BUILT_IN_GAMES.find(g => g.id === selectedGame);
 
   return (
     <div className="min-h-screen bg-background relative">
