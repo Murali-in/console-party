@@ -123,6 +123,17 @@ export default function GameScreen() {
       return;
     }
 
+    // If iframe game, no Phaser needed — just show the iframe
+    if (isIframeGame) {
+      const channel = hostRoom(roomCode, {
+        onPlayerJoined: () => {},
+        onPlayerLeft: () => {},
+        onInputUpdate: () => {},
+      });
+      channelRef.current = channel;
+      return () => { if (channelRef.current) leaveRoom(channelRef.current); };
+    }
+
     startMusic();
 
     const onGameOver = (w: string, s: Record<string, number>) => {
