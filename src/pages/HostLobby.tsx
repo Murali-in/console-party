@@ -100,7 +100,7 @@ export default function HostLobby() {
           type: 'broadcast', event: 'game-started',
           payload: { gameId: selectedGame, players },
         });
-        setTimeout(() => navigate(`/play/game/${roomCode}`), 600);
+        setTimeout(() => navigate(`/game/${roomCode}`), 600);
       }
     }, 1000);
   }, [selectedGame, allReadyMulti, players, roomCode, navigate]);
