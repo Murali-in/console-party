@@ -202,7 +202,7 @@ export default function HostLobby() {
                   <button
                     onClick={() => {
                       const demoPlayers = [
-                        { id: 'demo-p1', name: 'Player 1', index: 0, color: '#6c63ff', ready: true },
+                        { id: 'demo-p1', name: 'Player 1', index: 0, color: '#bfbfbf', ready: true },
                         { id: 'demo-cpu', name: 'CPU', index: 1, color: '#f87171', ready: true },
                       ];
                       sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
