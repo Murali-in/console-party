@@ -107,7 +107,11 @@ export default function HostLobby() {
     }, 1000);
   }, [selectedGame, allReadyMulti, players, roomCode, navigate]);
 
-  const selectedGameData = BUILT_IN_GAMES.find(g => g.id === selectedGame);
+  const getGameMeta = (id: string) => {
+    const g = BUILT_IN_GAMES.find(x => x.id === id);
+    return { gameType: g?.type === 'iframe' ? 'iframe' : 'phaser', iframeUrl: g?.type === 'iframe' ? (g as any).url : undefined };
+  };
+
 
   return (
     <div className="min-h-screen bg-background relative">
