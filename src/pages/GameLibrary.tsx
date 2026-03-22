@@ -63,6 +63,10 @@ export default function GameLibrary() {
     fetchGames();
   }, []);
 
+  // Deduplicate: built-in games take priority over DB entries with same title
+  const builtInTitles = new Set(BUILT_IN_GAMES.map(g => g.title.toLowerCase()));
+  const uniqueCommunityGames = communityGames.filter(g => !builtInTitles.has(g.title.toLowerCase()));
+
   const allGames = [
     ...BUILT_IN_GAMES.map(g => ({
       id: g.id,
@@ -75,7 +79,7 @@ export default function GameLibrary() {
       game_type: g.gameType,
       coverClass: g.coverClass,
     })),
-    ...communityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
+    ...uniqueCommunityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
   ];
 
   const filtered = filter === 'All'
