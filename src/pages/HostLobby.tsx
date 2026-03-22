@@ -96,8 +96,9 @@ export default function HostLobby() {
         channelRef.current?.send({ type: 'broadcast', event: 'countdown', payload: { count: 0 } });
         if (countdownRef.current) clearInterval(countdownRef.current);
 
+        const meta = getGameMeta(selectedGame);
         sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
-          gameId: selectedGame, players, roomCode,
+          gameId: selectedGame, ...meta, players, roomCode,
         }));
         channelRef.current?.send({
           type: 'broadcast', event: 'game-started',
