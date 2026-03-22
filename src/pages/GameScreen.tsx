@@ -7,15 +7,17 @@ import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Pass' },
-  { id: 'nitro-race', title: 'Nitro Race' },
-  { id: 'apex-arena', title: 'Apex Arena' },
-  { id: 'pong', title: 'Pong' },
-  { id: 'tank-battle', title: 'Tank Battle' },
-  { id: 'snake-battle', title: 'Snake Battle' },
-  { id: 'platform-fighter', title: 'Brawl Zone' },
-  { id: 'maze-runner', title: 'Maze Runner' },
-  { id: 'trivia-clash', title: 'Trivia Clash' },
+  { id: 'bomb-arena', title: 'Bomb Pass', type: 'phaser' },
+  { id: 'nitro-race', title: 'Nitro Race', type: 'phaser' },
+  { id: 'apex-arena', title: 'Apex Arena', type: 'phaser' },
+  { id: 'pong', title: 'Pong', type: 'phaser' },
+  { id: 'tank-battle', title: 'Tank Battle', type: 'phaser' },
+  { id: 'snake-battle', title: 'Snake Battle', type: 'phaser' },
+  { id: 'platform-fighter', title: 'Brawl Zone', type: 'phaser' },
+  { id: 'maze-runner', title: 'Maze Runner', type: 'phaser' },
+  { id: 'trivia-clash', title: 'Trivia Clash', type: 'phaser' },
+  { id: 'tosios', title: 'TOSIOS', type: 'iframe', url: 'https://tosios.online' },
+  { id: 'kaetram', title: 'Kaetram', type: 'iframe', url: 'https://kaetram.com' },
 ];
 
 interface LocationState {

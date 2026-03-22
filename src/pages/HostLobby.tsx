@@ -8,15 +8,17 @@ import { playCountdownBeep, playReady } from '@/games/SoundFX';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Pass', genre: 'Party', minPlayers: 2, maxPlayers: 4, desc: 'Hot potato meets survival. Pass the bomb before it blows.', coverClass: 'cover-bomb-arena' },
-  { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', coverClass: 'cover-nitro-race' },
-  { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arena shooter. First to 10 kills wins.', coverClass: 'cover-apex-arena' },
-  { id: 'pong', title: 'Pong', genre: 'Classic', minPlayers: 2, maxPlayers: 2, desc: 'Classic 2-player pong. First to 7 points wins.', coverClass: 'cover-pong' },
-  { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', minPlayers: 2, maxPlayers: 4, desc: 'Drive, aim, and shoot. Last tank standing wins.', coverClass: 'cover-tank-battle' },
-  { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, desc: 'Multiplayer snake on a shared grid. Last snake alive wins.', coverClass: 'cover-snake-battle' },
-  { id: 'platform-fighter', title: 'Brawl Zone', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, desc: 'Platform fighter. Punch, jump, and smash. First to 5 KOs wins.', coverClass: 'cover-platform-fighter' },
-  { id: 'maze-runner', title: 'Maze Runner', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, desc: 'Race through procedural mazes. Collect coins, find the exit first.', coverClass: 'cover-maze-runner' },
-  { id: 'trivia-clash', title: 'Trivia Clash', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, desc: '10 rounds of rapid-fire trivia. Use your joystick to pick answers.', coverClass: 'cover-trivia-clash' },
+  { id: 'bomb-arena', title: 'Bomb Pass', genre: 'Party', minPlayers: 2, maxPlayers: 4, desc: 'Hot potato meets survival. Pass the bomb before it blows.', coverClass: 'cover-bomb-arena', type: 'phaser' },
+  { id: 'nitro-race', title: 'Nitro Race', genre: 'Racing', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', coverClass: 'cover-nitro-race', type: 'phaser' },
+  { id: 'apex-arena', title: 'Apex Arena', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, desc: 'Top-down arena shooter. First to 10 kills wins.', coverClass: 'cover-apex-arena', type: 'phaser' },
+  { id: 'pong', title: 'Pong', genre: 'Classic', minPlayers: 2, maxPlayers: 2, desc: 'Classic 2-player pong. First to 7 points wins.', coverClass: 'cover-pong', type: 'phaser' },
+  { id: 'tank-battle', title: 'Tank Battle', genre: 'Combat', minPlayers: 2, maxPlayers: 4, desc: 'Drive, aim, and shoot. Last tank standing wins.', coverClass: 'cover-tank-battle', type: 'phaser' },
+  { id: 'snake-battle', title: 'Snake Battle', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, desc: 'Multiplayer snake on a shared grid. Last snake alive wins.', coverClass: 'cover-snake-battle', type: 'phaser' },
+  { id: 'platform-fighter', title: 'Brawl Zone', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, desc: 'Platform fighter. Punch, jump, and smash. First to 5 KOs wins.', coverClass: 'cover-platform-fighter', type: 'phaser' },
+  { id: 'maze-runner', title: 'Maze Runner', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, desc: 'Race through procedural mazes. Collect coins, find the exit first.', coverClass: 'cover-maze-runner', type: 'phaser' },
+  { id: 'trivia-clash', title: 'Trivia Clash', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, desc: '10 rounds of rapid-fire trivia. Use your joystick to pick answers.', coverClass: 'cover-trivia-clash', type: 'phaser' },
+  { id: 'tosios', title: 'TOSIOS', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, desc: 'Top-down multiplayer IO shooter. Last player alive wins.', coverClass: 'cover-tosios', type: 'iframe', url: 'https://tosios.online' },
+  { id: 'kaetram', title: 'Kaetram', genre: 'RPG', minPlayers: 1, maxPlayers: 4, desc: 'Open-world 2D MMORPG. Explore, fight, quest together.', coverClass: 'cover-kaetram', type: 'iframe', url: 'https://kaetram.com' },
 ];
 
 export default function HostLobby() {

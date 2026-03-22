@@ -18,7 +18,7 @@ const BUILT_IN_GAMES = [
   { id: 'kaetram', title: 'Kaetram', description: 'Open-world 2D MMORPG. Explore, fight, quest together.', genre: 'RPG', minPlayers: 1, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-kaetram' },
 ];
 
-const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'Community'];
+const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'RPG', 'Community'];
 
 interface CommunityGame {
   id: string;
