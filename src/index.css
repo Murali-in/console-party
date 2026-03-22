@@ -254,7 +254,7 @@
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 25% 30%, rgba(107,95,255,0.1) 0%, transparent 30%),
+      radial-gradient(circle at 25% 30%, rgba(191,191,191,0.1) 0%, transparent 30%),
       radial-gradient(circle at 75% 30%, rgba(52,211,153,0.1) 0%, transparent 30%),
       radial-gradient(circle at 25% 70%, rgba(248,113,113,0.1) 0%, transparent 30%),
       radial-gradient(circle at 75% 70%, rgba(251,191,36,0.1) 0%, transparent 30%),

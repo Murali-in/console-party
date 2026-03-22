@@ -13,7 +13,7 @@ const BUTTON_LABELS: Record<string, Record<string, string>> = {
 };
 
 const BTN_COLORS: Record<string, string> = {
-  A: '#6b5fff',
+  A: '#bfbfbf',
   B: '#f87171',
   X: '#60a5fa',
   Y: '#34d399',
