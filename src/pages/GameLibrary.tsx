@@ -27,6 +27,8 @@ interface CommunityGame {
   max_players: number;
   cover_image_url: string | null;
   game_type: string;
+  submitter_id: string | null;
+  contributor_name?: string;
 }
 
 export default function GameLibrary() {
