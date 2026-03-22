@@ -19,13 +19,16 @@ export type Database = {
           approved_at: string
           cover_image_url: string | null
           description: string
+          engine: string
           game_type: string
           genre: string
+          github_url: string | null
           id: string
           is_private: boolean
           max_players: number
           min_players: number
           play_count: number
+          source_url: string | null
           submitter_id: string | null
           title: string
         }
@@ -33,13 +36,16 @@ export type Database = {
           approved_at?: string
           cover_image_url?: string | null
           description: string
+          engine?: string
           game_type?: string
           genre: string
+          github_url?: string | null
           id?: string
           is_private?: boolean
           max_players?: number
           min_players?: number
           play_count?: number
+          source_url?: string | null
           submitter_id?: string | null
           title: string
         }
@@ -47,13 +53,16 @@ export type Database = {
           approved_at?: string
           cover_image_url?: string | null
           description?: string
+          engine?: string
           game_type?: string
           genre?: string
+          github_url?: string | null
           id?: string
           is_private?: boolean
           max_players?: number
           min_players?: number
           play_count?: number
+          source_url?: string | null
           submitter_id?: string | null
           title?: string
         }
