@@ -288,7 +288,18 @@ export default function GameScreen() {
       )}
 
       <div className="flex-1 relative">
-        <div id="game-container" className="w-full h-full" />
+        {isIframeGame && iframeUrl ? (
+          <iframe
+            ref={iframeRef}
+            src={iframeUrl}
+            className="w-full h-full border-0"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            allow="fullscreen; autoplay"
+            title={currentGameMeta?.title || 'Game'}
+          />
+        ) : (
+          <div id="game-container" className="w-full h-full" />
+        )}
         {gameOver && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-50">
             <div className="text-center space-y-4 p-8">
