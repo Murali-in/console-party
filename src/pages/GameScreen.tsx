@@ -7,19 +7,23 @@ import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Pass' },
-  { id: 'nitro-race', title: 'Nitro Race' },
-  { id: 'apex-arena', title: 'Apex Arena' },
-  { id: 'pong', title: 'Pong' },
-  { id: 'tank-battle', title: 'Tank Battle' },
-  { id: 'snake-battle', title: 'Snake Battle' },
-  { id: 'platform-fighter', title: 'Brawl Zone' },
-  { id: 'maze-runner', title: 'Maze Runner' },
-  { id: 'trivia-clash', title: 'Trivia Clash' },
+  { id: 'bomb-arena', title: 'Bomb Pass', type: 'phaser' },
+  { id: 'nitro-race', title: 'Nitro Race', type: 'phaser' },
+  { id: 'apex-arena', title: 'Apex Arena', type: 'phaser' },
+  { id: 'pong', title: 'Pong', type: 'phaser' },
+  { id: 'tank-battle', title: 'Tank Battle', type: 'phaser' },
+  { id: 'snake-battle', title: 'Snake Battle', type: 'phaser' },
+  { id: 'platform-fighter', title: 'Brawl Zone', type: 'phaser' },
+  { id: 'maze-runner', title: 'Maze Runner', type: 'phaser' },
+  { id: 'trivia-clash', title: 'Trivia Clash', type: 'phaser' },
+  { id: 'tosios', title: 'TOSIOS', type: 'iframe', url: 'https://tosios.online' },
+  { id: 'kaetram', title: 'Kaetram', type: 'iframe', url: 'https://kaetram.com' },
 ];
 
 interface LocationState {
   gameId: string;
+  gameType?: 'phaser' | 'iframe';
+  iframeUrl?: string;
   players: { id: string; name: string; index: number; color: string }[];
   roomCode: string;
   demo?: boolean;
@@ -39,11 +43,16 @@ export default function GameScreen() {
   const [soloControllerUrl, setSoloControllerUrl] = useState('');
   const [muted, setMuted] = useState(getIsMuted());
   const scoresSavedRef = useRef(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
   const [currentGameId, setCurrentGameId] = useState(state?.gameId || '');
 
+  // Determine if current game is iframe type
+  const currentGameMeta = BUILT_IN_GAMES.find(g => g.id === (currentGameId || state?.gameId));
+  const isIframeGame = state?.gameType === 'iframe' || currentGameMeta?.type === 'iframe';
+  const iframeUrl = state?.iframeUrl || currentGameMeta?.url;
   const saveScores = useCallback(async (gameId: string, rc: string, w: string, s: Record<string, number>) => {
     if (scoresSavedRef.current) return;
     scoresSavedRef.current = true;
@@ -73,8 +82,12 @@ export default function GameScreen() {
     setShowGamePicker(false);
     setCurrentGameId(newGameId);
 
+    const newMeta = BUILT_IN_GAMES.find(g => g.id === newGameId);
+    const newType = newMeta?.type === 'iframe' ? 'iframe' : 'phaser';
+    const newUrl = newMeta?.type === 'iframe' ? (newMeta as any).url : undefined;
+
     // Update session storage
-    const newState = { ...state, gameId: newGameId };
+    const newState = { ...state, gameId: newGameId, gameType: newType, iframeUrl: newUrl };
     sessionStorage.setItem(`game-${roomCode}`, JSON.stringify(newState));
 
     // Notify controllers
@@ -83,28 +96,42 @@ export default function GameScreen() {
       payload: { gameId: newGameId, players: state.players },
     });
 
-    startMusic();
-    setTimeout(() => {
-      startGame({
-        gameId: newGameId,
-        containerId: 'game-container',
-        players: state.players,
-        onGameOver: (w, s) => {
-          setGameOver(true);
-          setWinner(w);
-          setScores(s);
-          stopMusic();
-          saveScores(newGameId, roomCode, w, s);
-          channelRef.current?.send({ type: 'broadcast', event: 'game-over', payload: { winner: w, scores: s } });
-        },
-      }).catch(console.error);
-    }, 300);
+    // Only start Phaser for non-iframe games
+    if (newType !== 'iframe') {
+      startMusic();
+      setTimeout(() => {
+        startGame({
+          gameId: newGameId,
+          containerId: 'game-container',
+          players: state.players,
+          onGameOver: (w, s) => {
+            setGameOver(true);
+            setWinner(w);
+            setScores(s);
+            stopMusic();
+            saveScores(newGameId, roomCode, w, s);
+            channelRef.current?.send({ type: 'broadcast', event: 'game-over', payload: { winner: w, scores: s } });
+          },
+        }).catch(console.error);
+      }, 300);
+    }
   }, [state, roomCode, saveScores]);
 
   useEffect(() => {
     if (!roomCode || !state) {
       navigate('/host');
       return;
+    }
+
+    // If iframe game, no Phaser needed — just show the iframe
+    if (isIframeGame) {
+      const channel = hostRoom(roomCode, {
+        onPlayerJoined: () => {},
+        onPlayerLeft: () => {},
+        onInputUpdate: () => {},
+      });
+      channelRef.current = channel;
+      return () => { if (channelRef.current) leaveRoom(channelRef.current); };
     }
 
     startMusic();
@@ -279,7 +306,18 @@ export default function GameScreen() {
       )}
 
       <div className="flex-1 relative">
-        <div id="game-container" className="w-full h-full" />
+        {isIframeGame && iframeUrl ? (
+          <iframe
+            ref={iframeRef}
+            src={iframeUrl}
+            className="w-full h-full border-0"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            allow="fullscreen; autoplay"
+            title={currentGameMeta?.title || 'Game'}
+          />
+        ) : (
+          <div id="game-container" className="w-full h-full" />
+        )}
         {gameOver && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-50">
             <div className="text-center space-y-4 p-8">

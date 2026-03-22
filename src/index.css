@@ -261,3 +261,55 @@
       radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 50%);
   }
 }
+
+/* TOSIOS: dark navy with crosshair overlay */
+.cover-tosios {
+  background: #060a14;
+  position: relative;
+  overflow: hidden;
+}
+.cover-tosios::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, transparent 49%, rgba(248,113,113,0.15) 49%, rgba(248,113,113,0.15) 51%, transparent 51%),
+    linear-gradient(90deg, transparent 49%, rgba(248,113,113,0.15) 49%, rgba(248,113,113,0.15) 51%, transparent 51%),
+    radial-gradient(circle at 50% 50%, rgba(248,113,113,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 30% 30%, rgba(96,165,250,0.06) 0%, transparent 35%);
+}
+.cover-tosios::after {
+  content: '⊕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  color: rgba(248,113,113,0.25);
+}
+
+/* Kaetram: deep forest green with pixel grid */
+.cover-kaetram {
+  background: #050f08;
+  position: relative;
+  overflow: hidden;
+}
+.cover-kaetram::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(52,211,153,0.04) 15px, rgba(52,211,153,0.04) 16px),
+    repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(52,211,153,0.04) 15px, rgba(52,211,153,0.04) 16px),
+    radial-gradient(circle at 40% 40%, rgba(52,211,153,0.1) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(251,191,36,0.06) 0%, transparent 30%);
+}
+.cover-kaetram::after {
+  content: '⚔';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  color: rgba(52,211,153,0.2);
+}
