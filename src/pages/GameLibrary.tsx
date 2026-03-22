@@ -118,6 +118,7 @@ export default function GameLibrary() {
               coverUrl={game.cover_image_url ?? undefined}
               coverClass={game.coverClass}
               gameType={game.game_type as 'official' | 'community'}
+              contributorName={(game as any).contributor_name}
             />
           ))}
         </div>
