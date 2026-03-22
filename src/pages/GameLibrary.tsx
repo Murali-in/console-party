@@ -73,7 +73,7 @@ export default function GameLibrary() {
       game_type: g.gameType,
       coverClass: g.coverClass,
     })),
-    ...communityGames.map(g => ({ ...g, coverClass: undefined })),
+    ...communityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
   ];
 
   const filtered = filter === 'All'
