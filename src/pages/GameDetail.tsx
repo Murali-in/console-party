@@ -172,7 +172,7 @@ export default function GameDetail() {
     if (!approvedRecord) return;
     setAdminBusy(true);
     const nextValue = !approvedRecord.is_private;
-    await supabase.from('approved_games').update({ is_private: nextValue } as any).eq('id', approvedRecord.id);
+    await supabase.from('approved_games').update({ is_private: nextValue }).eq('id', approvedRecord.id);
     setApprovedRecord({ ...approvedRecord, is_private: nextValue });
     setAdminBusy(false);
   };
