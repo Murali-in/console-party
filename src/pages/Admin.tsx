@@ -11,13 +11,14 @@ interface Stats {
 }
 
 export default function Admin() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({ totalGames: 0, pending: 0, contributors: 0 });
 
   useEffect(() => {
+    // Non-admins see 404 (no info leak)
     if (!loading && !isAdmin) {
-      navigate('/');
+      navigate('/', { replace: true });
     }
   }, [isAdmin, loading, navigate]);
 
@@ -31,7 +32,7 @@ export default function Admin() {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
       ]);
       setStats({
-        totalGames: (approved.count ?? 0) + 5,
+        totalGames: (approved.count ?? 0) + 9, // 9 built-in games
         pending: pending.count ?? 0,
         contributors: profiles.count ?? 0,
       });
@@ -44,14 +45,23 @@ export default function Admin() {
   const statCards = [
     { label: 'Total Games', value: stats.totalGames },
     { label: 'Pending Review', value: stats.pending },
-    { label: 'Contributors', value: stats.contributors },
+    { label: 'Users', value: stats.contributors },
+  ];
+
+  const adminLinks = [
+    { to: '/admin/review', label: 'Review Submissions', desc: 'Approve, reject, or sandbox-test submitted games' },
+    { to: '/games', label: 'Game Library', desc: 'View and manage all live games' },
+    { to: '/developers', label: 'Developer Docs', desc: 'Unity, Godot, Unreal, HTML5 integration guides' },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-20 px-6 max-w-5xl mx-auto">
-        <h1 className="font-heading text-3xl font-bold mb-8 text-foreground">Admin Dashboard</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="font-heading text-3xl font-bold text-foreground">Admin Dashboard</h1>
+          <span className="text-[10px] font-mono text-muted-foreground">{user?.email}</span>
+        </div>
 
         <div className="grid grid-cols-3 gap-4 mb-12">
           {statCards.map(s => (
@@ -62,12 +72,21 @@ export default function Admin() {
           ))}
         </div>
 
-        <Link
-          to="/admin/review"
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm"
-        >
-          Review Submissions →
-        </Link>
+        <div className="space-y-3">
+          {adminLinks.map(link => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="flex items-center justify-between p-5 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors group"
+            >
+              <div>
+                <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{link.label}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{link.desc}</p>
+              </div>
+              <span className="text-muted-foreground group-hover:text-primary transition-colors">→</span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
+const ADMIN_EMAIL = 'gokusonatwork@gmail.com';
+
 interface Profile {
   id: string;
   user_id: string;
@@ -63,6 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const isAdmin =
+    profile?.role === 'admin' ||
+    user?.email === ADMIN_EMAIL;
+
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -85,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, profile, loading,
-      isAdmin: profile?.role === 'admin',
+      isAdmin,
       signUp, signIn, signOut,
     }}>
       {children}
