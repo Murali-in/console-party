@@ -43,11 +43,16 @@ export default function GameScreen() {
   const [soloControllerUrl, setSoloControllerUrl] = useState('');
   const [muted, setMuted] = useState(getIsMuted());
   const scoresSavedRef = useRef(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
   const [currentGameId, setCurrentGameId] = useState(state?.gameId || '');
 
+  // Determine if current game is iframe type
+  const currentGameMeta = BUILT_IN_GAMES.find(g => g.id === (currentGameId || state?.gameId));
+  const isIframeGame = state?.gameType === 'iframe' || currentGameMeta?.type === 'iframe';
+  const iframeUrl = state?.iframeUrl || currentGameMeta?.url;
   const saveScores = useCallback(async (gameId: string, rc: string, w: string, s: Record<string, number>) => {
     if (scoresSavedRef.current) return;
     scoresSavedRef.current = true;
