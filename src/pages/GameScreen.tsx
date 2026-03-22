@@ -22,6 +22,8 @@ const BUILT_IN_GAMES = [
 
 interface LocationState {
   gameId: string;
+  gameType?: 'phaser' | 'iframe';
+  iframeUrl?: string;
   players: { id: string; name: string; index: number; color: string }[];
   roomCode: string;
   demo?: boolean;
