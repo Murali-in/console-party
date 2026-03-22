@@ -69,7 +69,7 @@ export default function HostLobby() {
       type: 'broadcast', event: 'game-started',
       payload: { gameId: selectedGame, players: soloPlayers },
     });
-    navigate(`/play/game/${roomCode}`);
+    navigate(`/game/${roomCode}`);
   }, [selectedGame, hasPlayers, players, roomCode, navigate]);
 
   // Multiplayer: 2+ players all ready
