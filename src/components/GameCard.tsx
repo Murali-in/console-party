@@ -9,10 +9,11 @@ interface GameCardProps {
   coverUrl?: string;
   coverClass?: string;
   gameType: 'official' | 'community';
+  contributorName?: string;
   onClick?: () => void;
 }
 
-export default function GameCard({ id, title, genre, minPlayers, maxPlayers, coverUrl, coverClass, gameType, onClick }: GameCardProps) {
+export default function GameCard({ id, title, genre, minPlayers, maxPlayers, coverUrl, coverClass, gameType, contributorName, onClick }: GameCardProps) {
   const navigate = useNavigate();
   const handleClick = onClick || (() => navigate(`/games/${id}`));
   return (
@@ -27,7 +28,7 @@ export default function GameCard({ id, title, genre, minPlayers, maxPlayers, cov
           <span className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">No Cover</span>
         ) : null}
         <span className={`absolute top-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded ${
-          gameType === 'official' ? 'bg-primary/20 text-primary' : 'bg-success/20 text-success'
+          gameType === 'official' ? 'bg-primary/20 text-primary' : 'bg-green-500/20 text-green-400'
         }`}>
           {gameType === 'official' ? 'Official' : 'Community'}
         </span>
@@ -40,6 +41,9 @@ export default function GameCard({ id, title, genre, minPlayers, maxPlayers, cov
           <span className="text-[10px] font-mono text-muted-foreground">{genre}</span>
           <span className="text-[10px] font-mono text-muted-foreground">· {minPlayers}–{maxPlayers} players</span>
         </div>
+        {contributorName && gameType === 'community' && (
+          <p className="text-[10px] text-muted-foreground">by {contributorName}</p>
+        )}
       </div>
     </button>
   );

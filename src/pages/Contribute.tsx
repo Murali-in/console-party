@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-const GENRES = ['Party', 'Racing', 'Shooter', 'Strategy', 'Puzzle', 'Other'];
+const GENRES = ['Party', 'Racing', 'Shooter', 'Strategy', 'Puzzle', 'RPG', 'Classic', 'Other'];
+
+interface MySubmission {
+  id: string;
+  title: string;
+  status: string;
+  genre: string;
+  submitted_at: string;
+  admin_notes: string | null;
+}
 
 export default function Contribute() {
-  const { user } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const navigate = useNavigate();
+  const [tab, setTab] = useState<'dashboard' | 'submit'>('dashboard');
+  const [mySubmissions, setMySubmissions] = useState<MySubmission[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -23,10 +34,22 @@ export default function Contribute() {
     agree: false,
   });
 
+  useEffect(() => {
+    if (user) fetchMySubmissions();
+  }, [user]);
+
+  const fetchMySubmissions = async () => {
+    const { data } = await supabase
+      .from('submitted_games')
+      .select('id, title, status, genre, submitted_at, admin_notes')
+      .eq('submitter_id', user!.id)
+      .order('submitted_at', { ascending: false });
+    if (data) setMySubmissions(data as MySubmission[]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !form.agree) return;
-
     setLoading(true);
     const { error } = await supabase.from('submitted_games').insert({
       title: form.title.trim(),
@@ -39,175 +62,252 @@ export default function Contribute() {
       submitter_id: user.id,
       status: 'pending',
     } as any);
-
     setLoading(false);
-    if (!error) setSubmitted(true);
+    if (!error) {
+      setSubmitted(true);
+      setForm({ title: '', description: '', genre: 'Party', minPlayers: 2, maxPlayers: 4, githubUrl: '', demoUrl: '', agree: false });
+      fetchMySubmissions();
+    }
   };
 
+  // Not logged in → prompt to sign up as contributor
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-32 px-6 max-w-lg mx-auto text-center space-y-6">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Contribute a Game</h1>
-          <p className="text-sm text-muted-foreground">You need to be logged in to submit a game.</p>
-          <button
-            onClick={() => navigate('/auth/login')}
-            className="bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm"
-          >
-            Log In
-          </button>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Become a Contributor</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Contributors can submit games to Eternity Console. Your game gets reviewed by our admin,
+            and once approved it goes live for all players. Sign up or log in to get started.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Players don't need an account — just enter a room code to play.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate('/auth/signup')}
+              className="bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm"
+            >
+              Sign Up as Contributor
+            </button>
+            <button
+              onClick={() => navigate('/auth/login')}
+              className="border border-border text-foreground font-medium px-6 py-3 rounded-lg hover:bg-secondary transition-colors text-sm"
+            >
+              Log In
+            </button>
+          </div>
         </div>
         <Footer />
       </div>
     );
   }
 
-  if (submitted) {
+  const statusBadge = (s: string) => {
+    const colors: Record<string, string> = {
+      pending: 'bg-muted text-muted-foreground',
+      approved: 'bg-green-500/20 text-green-400',
+      rejected: 'bg-destructive/20 text-destructive',
+      needs_revision: 'bg-yellow-500/20 text-yellow-400',
+    };
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 px-6 max-w-lg mx-auto text-center space-y-6">
-          <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center mx-auto">
-            <span className="text-success text-xl">✓</span>
-          </div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Game Submitted</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Game submitted. Our admin team will review your submission within 48 hours.
-            If approved, your game will appear in the Eternity Console library with a
-            'Community' badge and your name as the creator.
-          </p>
-          <button
-            onClick={() => navigate('/games')}
-            className="text-primary text-sm font-medium hover:opacity-80 transition-opacity"
-          >
-            Browse Games →
-          </button>
-        </div>
-        <Footer />
-      </div>
+      <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${colors[s] || colors.pending}`}>
+        {s.toUpperCase()}
+      </span>
     );
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-20 px-6 max-w-2xl mx-auto">
-        <div className="space-y-2 mb-8">
-          <h1 className="font-heading text-3xl font-bold text-foreground">Submit Your Game</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Eternity Console is a growing platform. New games are added regularly —
-            by our team and by developers like you. If you've built a small multiplayer
-            browser game, you can submit it here. Once it passes our review, it goes
-            live to all players. Your game. Real players. Zero distribution hassle.
-          </p>
+      <div className="pt-24 pb-20 px-6 max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-heading text-2xl font-bold text-foreground">
+              {isAdmin ? 'Admin — Contributor Panel' : 'Contributor Dashboard'}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Signed in as <span className="font-mono">{user.email}</span>
+              {isAdmin && <span className="ml-2 text-primary font-semibold">ADMIN</span>}
+            </p>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="border border-border text-foreground font-medium px-4 py-2 rounded-lg hover:bg-secondary transition-colors text-xs"
+            >
+              Admin Dashboard →
+            </button>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Game Title</label>
-            <input
-              required
-              maxLength={60}
-              value={form.title}
-              onChange={e => setForm({ ...form, title: e.target.value })}
-              className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="My Awesome Game"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Short Description</label>
-            <textarea
-              required
-              maxLength={140}
-              rows={2}
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-              placeholder="A brief description of your game (max 140 chars)"
-            />
-            <span className="text-xs text-muted-foreground">{form.description.length}/140</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Genre</label>
-              <select
-                value={form.genre}
-                onChange={e => setForm({ ...form, genre: e.target.value })}
-                className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Players</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  min={2}
-                  max={4}
-                  value={form.minPlayers}
-                  onChange={e => setForm({ ...form, minPlayers: Number(e.target.value) })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                <span className="flex items-center text-muted-foreground">–</span>
-                <input
-                  type="number"
-                  min={2}
-                  max={4}
-                  value={form.maxPlayers}
-                  onChange={e => setForm({ ...form, maxPlayers: Number(e.target.value) })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">GitHub Repository URL *</label>
-            <input
-              required
-              type="url"
-              value={form.githubUrl}
-              onChange={e => setForm({ ...form, githubUrl: e.target.value })}
-              className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="https://github.com/you/your-game"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Playable Demo URL (optional)</label>
-            <input
-              type="url"
-              value={form.demoUrl}
-              onChange={e => setForm({ ...form, demoUrl: e.target.value })}
-              className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="https://your-game-demo.com"
-            />
-          </div>
-
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.agree}
-              onChange={e => setForm({ ...form, agree: e.target.checked })}
-              className="mt-1 accent-primary"
-            />
-            <span className="text-sm text-muted-foreground">
-              I confirm this game contains no harmful, offensive, or copyrighted content.
-            </span>
-          </label>
-
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 border-b border-border">
           <button
-            type="submit"
-            disabled={loading || !form.agree}
-            className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30"
+            onClick={() => { setTab('dashboard'); setSubmitted(false); }}
+            className={`px-4 py-2 text-sm font-heading font-medium border-b-2 transition-colors ${
+              tab === 'dashboard' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
           >
-            {loading ? 'Submitting...' : 'Submit Game for Review'}
+            My Submissions ({mySubmissions.length})
           </button>
-        </form>
+          <button
+            onClick={() => { setTab('submit'); setSubmitted(false); }}
+            className={`px-4 py-2 text-sm font-heading font-medium border-b-2 transition-colors ${
+              tab === 'submit' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Submit New Game
+          </button>
+        </div>
+
+        {/* Dashboard Tab */}
+        {tab === 'dashboard' && (
+          <div>
+            {mySubmissions.length === 0 ? (
+              <div className="text-center py-16 space-y-4">
+                <p className="text-muted-foreground text-sm">You haven't submitted any games yet.</p>
+                <button
+                  onClick={() => setTab('submit')}
+                  className="bg-primary text-primary-foreground font-medium px-6 py-2 rounded-lg hover:opacity-90 transition-opacity text-sm"
+                >
+                  Submit Your First Game
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {mySubmissions.map(sub => (
+                  <div key={sub.id} className="bg-card border border-border rounded-lg px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-heading font-semibold text-sm text-foreground">{sub.title}</span>
+                        {statusBadge(sub.status)}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {sub.genre} · Submitted {new Date(sub.submitted_at).toLocaleDateString()}
+                      </p>
+                      {sub.admin_notes && (
+                        <p className="text-xs text-yellow-400 mt-1">Admin: {sub.admin_notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Submit Tab */}
+        {tab === 'submit' && (
+          <>
+            {submitted ? (
+              <div className="text-center py-16 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+                  <span className="text-green-400 text-xl">✓</span>
+                </div>
+                <h2 className="font-heading text-xl font-bold text-foreground">Game Submitted!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Our admin will review your submission. You'll see the status update here.
+                </p>
+                <button
+                  onClick={() => { setSubmitted(false); setTab('dashboard'); }}
+                  className="text-primary text-sm font-medium hover:opacity-80"
+                >
+                  View My Submissions →
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Game Title</label>
+                  <input
+                    required maxLength={60} value={form.title}
+                    onChange={e => setForm({ ...form, title: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="My Awesome Game"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Short Description</label>
+                  <textarea
+                    required maxLength={140} rows={2} value={form.description}
+                    onChange={e => setForm({ ...form, description: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                    placeholder="A brief description (max 140 chars)"
+                  />
+                  <span className="text-xs text-muted-foreground">{form.description.length}/140</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Genre</label>
+                    <select
+                      value={form.genre}
+                      onChange={e => setForm({ ...form, genre: e.target.value })}
+                      className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Players</label>
+                    <div className="flex gap-2">
+                      <input type="number" min={1} max={4} value={form.minPlayers}
+                        onChange={e => setForm({ ...form, minPlayers: Number(e.target.value) })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <span className="flex items-center text-muted-foreground">–</span>
+                      <input type="number" min={1} max={4} value={form.maxPlayers}
+                        onChange={e => setForm({ ...form, maxPlayers: Number(e.target.value) })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">GitHub Repository URL *</label>
+                  <input
+                    required type="url" value={form.githubUrl}
+                    onChange={e => setForm({ ...form, githubUrl: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="https://github.com/you/your-game"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Playable Demo URL (optional)</label>
+                  <input
+                    type="url" value={form.demoUrl}
+                    onChange={e => setForm({ ...form, demoUrl: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="https://your-game-demo.com"
+                  />
+                </div>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.agree}
+                    onChange={e => setForm({ ...form, agree: e.target.checked })}
+                    className="mt-1 accent-primary"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    I confirm this game contains no harmful, offensive, or copyrighted content.
+                  </span>
+                </label>
+
+                <button
+                  type="submit" disabled={loading || !form.agree}
+                  className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-30"
+                >
+                  {loading ? 'Submitting...' : 'Submit Game for Review'}
+                </button>
+              </form>
+            )}
+          </>
+        )}
       </div>
       <Footer />
     </div>

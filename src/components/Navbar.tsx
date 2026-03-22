@@ -33,7 +33,7 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
             Games
           </Link>
           <Link to="/contribute" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-            Contribute
+            {user ? 'Contribute' : 'Become a Contributor'}
           </Link>
           <Link to="/developers" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Developers
@@ -48,7 +48,9 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-[10px] font-mono text-muted-foreground hidden md:block">{user.email}</span>
+              <Link to="/contribute" className="text-[10px] font-mono text-muted-foreground hidden md:block hover:text-foreground transition-colors">
+                {user.email}
+              </Link>
               <button
                 onClick={() => signOut()}
                 className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -58,7 +60,7 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
             </>
           ) : (
             <Link to="/auth/login" className="inline-flex h-9 items-center rounded-lg border border-border px-4 py-2 font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-              Log in
+              Contributor Login
             </Link>
           )}
           <Link

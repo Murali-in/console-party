@@ -16,15 +16,11 @@ export default function Admin() {
   const [stats, setStats] = useState<Stats>({ totalGames: 0, pending: 0, contributors: 0 });
 
   useEffect(() => {
-    // Non-admins see 404 (no info leak)
-    if (!loading && !isAdmin) {
-      navigate('/', { replace: true });
-    }
+    if (!loading && !isAdmin) navigate('/', { replace: true });
   }, [isAdmin, loading, navigate]);
 
   useEffect(() => {
     if (!isAdmin) return;
-
     const fetchStats = async () => {
       const [approved, pending, profiles] = await Promise.all([
         supabase.from('approved_games').select('id', { count: 'exact', head: true }),
@@ -32,7 +28,7 @@ export default function Admin() {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
       ]);
       setStats({
-        totalGames: (approved.count ?? 0) + 9, // 9 built-in games
+        totalGames: (approved.count ?? 0) + 9,
         pending: pending.count ?? 0,
         contributors: profiles.count ?? 0,
       });
@@ -45,12 +41,13 @@ export default function Admin() {
   const statCards = [
     { label: 'Total Games', value: stats.totalGames },
     { label: 'Pending Review', value: stats.pending },
-    { label: 'Users', value: stats.contributors },
+    { label: 'Contributors', value: stats.contributors },
   ];
 
   const adminLinks = [
-    { to: '/admin/review', label: 'Review Submissions', desc: 'Approve, reject, or sandbox-test submitted games' },
-    { to: '/games', label: 'Game Library', desc: 'View and manage all live games' },
+    { to: '/admin/review', label: 'Review Submissions', desc: 'Approve, reject, delete, or sandbox-test submitted games' },
+    { to: '/contribute', label: 'Submit a Game', desc: 'Submit a new game as admin (goes directly to library)' },
+    { to: '/games', label: 'Game Library', desc: 'View all live games — admin can manage each game' },
     { to: '/developers', label: 'Developer Docs', desc: 'Unity, Godot, Unreal, HTML5 integration guides' },
   ];
 
@@ -75,8 +72,7 @@ export default function Admin() {
         <div className="space-y-3">
           {adminLinks.map(link => (
             <Link
-              key={link.to}
-              to={link.to}
+              key={link.to} to={link.to}
               className="flex items-center justify-between p-5 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors group"
             >
               <div>

@@ -27,6 +27,8 @@ interface CommunityGame {
   max_players: number;
   cover_image_url: string | null;
   game_type: string;
+  submitter_id: string | null;
+  contributor_name?: string;
 }
 
 export default function GameLibrary() {
@@ -34,12 +36,29 @@ export default function GameLibrary() {
   const [communityGames, setCommunityGames] = useState<CommunityGame[]>([]);
 
   useEffect(() => {
-    supabase
-      .from('approved_games')
-      .select('*')
-      .then(({ data }) => {
-        if (data) setCommunityGames(data as CommunityGame[]);
-      });
+    const fetchGames = async () => {
+      const { data: games } = await supabase.from('approved_games').select('*');
+      if (!games) return;
+      // Fetch contributor names for community games
+      const submitterIds = games.filter(g => g.submitter_id).map(g => g.submitter_id);
+      let profileMap: Record<string, string> = {};
+      if (submitterIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, username, email')
+          .in('user_id', submitterIds);
+        if (profiles) {
+          profiles.forEach((p: any) => {
+            profileMap[p.user_id] = p.username || p.email?.split('@')[0] || 'Unknown';
+          });
+        }
+      }
+      setCommunityGames(games.map((g: any) => ({
+        ...g,
+        contributor_name: g.submitter_id ? profileMap[g.submitter_id] || 'Community' : undefined,
+      })));
+    };
+    fetchGames();
   }, []);
 
   const allGames = [
@@ -54,7 +73,7 @@ export default function GameLibrary() {
       game_type: g.gameType,
       coverClass: g.coverClass,
     })),
-    ...communityGames.map(g => ({ ...g, coverClass: undefined })),
+    ...communityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
   ];
 
   const filtered = filter === 'All'
@@ -99,6 +118,7 @@ export default function GameLibrary() {
               coverUrl={game.cover_image_url ?? undefined}
               coverClass={game.coverClass}
               gameType={game.game_type as 'official' | 'community'}
+              contributorName={(game as any).contributor_name}
             />
           ))}
         </div>
