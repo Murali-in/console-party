@@ -190,6 +190,7 @@ export default function AdminReview() {
                           ✓ Approve & Publish
                         </button>
                       )}
+                      {sub.status !== 'rejected' && (
                         <button
                           onClick={() => handleAction(sub.id, 'rejected')}
                           disabled={actionLoading}
