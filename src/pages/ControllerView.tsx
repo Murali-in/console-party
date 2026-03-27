@@ -20,6 +20,7 @@ export default function ControllerView() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting');
+  const [connectionTimedOut, setConnectionTimedOut] = useState(false);
   const [gamePhase, setGamePhase] = useState<GamePhase>('playing');
   const [winner, setWinner] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
