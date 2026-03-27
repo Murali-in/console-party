@@ -33,6 +33,13 @@ export default function ControllerView() {
     buttonB: false,
   });
 
+  // Connection timeout
+  useEffect(() => {
+    if (connected) return;
+    const timer = setTimeout(() => setConnectionTimedOut(true), 15000);
+    return () => clearTimeout(timer);
+  }, [connected]);
+
   useEffect(() => {
     if (!roomCode) return;
 
