@@ -178,7 +178,7 @@ export default function Landing() {
                   to={mode.link}
                   className="block p-6 rounded-[10px] border border-border bg-card hover:border-primary/30 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 h-full"
                 >
-                  <span className="text-2xl block mb-3">{mode.icon}</span>
+                  <span className="block mb-3"><mode.icon /></span>
                   <h3 className="font-heading text-sm font-semibold text-foreground mb-1">{mode.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{mode.desc}</p>
                 </Link>
