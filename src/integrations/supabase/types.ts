@@ -104,6 +104,98 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
+      }
+      forum_posts: {
+        Row: {
+          author_id: string
+          body: string
+          category: string
+          created_at: string
+          game_id: string | null
+          id: string
+          parent_id: string | null
+          pinned: boolean
+          reply_count: number
+          title: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          category?: string
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          parent_id?: string | null
+          pinned?: boolean
+          reply_count?: number
+          title: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          category?: string
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          parent_id?: string | null
+          pinned?: boolean
+          reply_count?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_ratings: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       leaderboards: {
         Row: {
           game_id: string
@@ -167,42 +259,96 @@ export type Database = {
         }
         Relationships: []
       }
+      play_events: {
+        Row: {
+          device_type: string | null
+          duration_s: number | null
+          game_id: string
+          id: string
+          played_at: string
+          session_id: string | null
+        }
+        Insert: {
+          device_type?: string | null
+          duration_s?: number | null
+          game_id: string
+          id?: string
+          played_at?: string
+          session_id?: string | null
+        }
+        Update: {
+          device_type?: string | null
+          duration_s?: number | null
+          game_id?: string
+          id?: string
+          played_at?: string
+          session_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
           email: string
+          games_played: number
+          github_username: string | null
           id: string
           is_banned: boolean
+          level: number
+          portfolio_accent: string | null
           role: Database["public"]["Enums"]["app_role"]
+          total_wins: number
+          twitter_handle: string | null
           user_id: string
           username: string | null
+          website_url: string | null
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
           email: string
+          games_played?: number
+          github_username?: string | null
           id?: string
           is_banned?: boolean
+          level?: number
+          portfolio_accent?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          total_wins?: number
+          twitter_handle?: string | null
           user_id: string
           username?: string | null
+          website_url?: string | null
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
           email?: string
+          games_played?: number
+          github_username?: string | null
           id?: string
           is_banned?: boolean
+          level?: number
+          portfolio_accent?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          total_wins?: number
+          twitter_handle?: string | null
           user_id?: string
           username?: string | null
+          website_url?: string | null
+          xp?: number
         }
         Relationships: []
       }

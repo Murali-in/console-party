@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DeviceProvider } from "@/contexts/DeviceContext";
@@ -8,6 +8,7 @@ import { RealtimeProvider } from "@/contexts/RealtimeContext";
 
 import Landing from "./pages/Landing";
 import Play from "./pages/Play";
+import SoloPlay from "./pages/SoloPlay";
 import HostLobby from "./pages/HostLobby";
 import GameScreen from "./pages/GameScreen";
 import ControllerView from "./pages/ControllerView";
@@ -25,6 +26,10 @@ import AdminSandbox from "./pages/AdminSandbox";
 import NotFound from "./pages/NotFound";
 import DeveloperDocs from "./pages/DeveloperDocs";
 import WatchMode from "./pages/WatchMode";
+import DevPortfolio from "./pages/DevPortfolio";
+import ProfileSettings from "./pages/ProfileSettings";
+import Community from "./pages/Community";
+import DevAnalytics from "./pages/DevAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -40,12 +45,13 @@ const App = () => (
                 <Route path="/" element={<Landing />} />
                 {/* Play routes */}
                 <Route path="/play" element={<Play />} />
+                <Route path="/play/solo" element={<SoloPlay />} />
+                <Route path="/play/solo/:gameSlug" element={<SoloPlay />} />
                 <Route path="/host" element={<HostLobby />} />
                 <Route path="/play/host" element={<HostLobby />} />
                 <Route path="/join" element={<Play />} />
                 <Route path="/join/:roomCode" element={<ControllerView />} />
                 <Route path="/game/:roomCode" element={<GameScreen />} />
-                {/* Legacy routes → redirect */}
                 <Route path="/play/game/:roomCode" element={<GameScreen />} />
                 <Route path="/play/controller/:roomCode" element={<ControllerView />} />
                 {/* Library */}
@@ -54,6 +60,12 @@ const App = () => (
                 {/* Community */}
                 <Route path="/contribute" element={<Contribute />} />
                 <Route path="/developers" element={<DeveloperDocs />} />
+                <Route path="/community" element={<Community />} />
+                {/* Developer portfolio & analytics */}
+                <Route path="/dev/:username" element={<DevPortfolio />} />
+                <Route path="/contribute/analytics" element={<DevAnalytics />} />
+                {/* Profile */}
+                <Route path="/profile/settings" element={<ProfileSettings />} />
                 {/* Auth */}
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
