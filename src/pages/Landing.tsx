@@ -17,10 +17,35 @@ const STEPS = [
   { num: '03', title: 'Phones become controllers', desc: 'D-pad + buttons on your phone. Up to 4 players. No pairing, no app downloads, no accounts.' },
 ];
 
+const PhoneIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+    <rect x="7" y="2" width="10" height="20" rx="2" />
+    <line x1="12" y1="18" x2="12" y2="18.01" />
+  </svg>
+);
+
+const LaptopPhoneIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+    <rect x="2" y="4" width="14" height="10" rx="1" />
+    <path d="M0 14h18" />
+    <rect x="17" y="6" width="6" height="12" rx="1" />
+    <line x1="20" y1="15" x2="20" y2="15.01" />
+  </svg>
+);
+
+const MultiplayerIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+    <path d="M6 11h4M8 9v4" />
+    <line x1="15" y1="12" x2="15.01" y2="12" />
+    <line x1="18" y1="10" x2="18.01" y2="10" />
+    <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+  </svg>
+);
+
 const PLAY_MODES = [
-  { icon: '📱', title: 'Phone Only', desc: 'Play solo on your phone. Game + controller on one screen.', link: '/play/solo' },
-  { icon: '🖥️📱', title: 'Laptop + Phone', desc: 'Game on laptop, phone as controller. Scan QR to connect.', link: '/play/host' },
-  { icon: '🎮', title: 'Multiplayer', desc: 'Up to 4 players. Each phone is a controller.', link: '/play' },
+  { icon: PhoneIcon, title: 'Phone Only', desc: 'Play solo on your phone. Game + controller on one screen.', link: '/play/solo' },
+  { icon: LaptopPhoneIcon, title: 'Laptop + Phone', desc: 'Game on laptop, phone as controller. Scan QR to connect.', link: '/play/host' },
+  { icon: MultiplayerIcon, title: 'Multiplayer', desc: 'Up to 4 players. Each phone is a controller.', link: '/play' },
 ];
 
 const DEVICE_TAGS = ['TV', 'Laptop', 'Phone', 'Tablet', 'Car display'];
@@ -51,6 +76,7 @@ interface Contributor {
 export default function Landing() {
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [stats, setStats] = useState<PlatformStats>({ totalGames: 3, totalUsers: 0, activeSessions: 0 });
+  const [onlineCount, setOnlineCount] = useState(0);
 
   useEffect(() => {
     supabase.from('profiles').select('username, email, avatar_url, role').order('created_at', { ascending: true })
@@ -65,6 +91,22 @@ export default function Landing() {
       .then(({ count }) => setStats(s => ({ ...s, activeSessions: count || 0 })));
     supabase.from('approved_games').select('id', { count: 'exact', head: true })
       .then(({ count }) => setStats(s => ({ ...s, totalGames: 3 + (count || 0) })));
+
+    // Track online presence
+    const visitorId = sessionStorage.getItem('visitor-id') || crypto.randomUUID();
+    sessionStorage.setItem('visitor-id', visitorId);
+    const presenceChannel = supabase.channel('online-users', { config: { presence: { key: visitorId } } });
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        setOnlineCount(Object.keys(presenceChannel.presenceState()).length);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => { supabase.removeChannel(presenceChannel); };
   }, []);
 
   return (
