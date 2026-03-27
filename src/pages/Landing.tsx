@@ -151,6 +151,12 @@ export default function Landing() {
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalGames} games</span>
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalUsers} contributors</span>
               {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-primary">{stats.activeSessions} playing now</span>}
+              {onlineCount > 0 && (
+                <span className="font-mono text-[10px] text-primary flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  {onlineCount} online
+                </span>
+              )}
             </motion.div>
           </motion.div>
         </div>
