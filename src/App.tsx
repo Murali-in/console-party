@@ -18,7 +18,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import AdminReview from "./pages/AdminReview";
-import NotFound from "./pages/NotFound";
+import AdminUsers from "./pages/AdminUsers";
+import AdminLogs from "./pages/AdminLogs";
+import AdminGames from "./pages/AdminGames";
+import AdminSandbox from "./pages/AdminSandbox";
 import DeveloperDocs from "./pages/DeveloperDocs";
 import WatchMode from "./pages/WatchMode";
 
@@ -56,6 +59,10 @@ const App = () => (
                 {/* Admin */}
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/review" element={<AdminReview />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/logs" element={<AdminLogs />} />
+                <Route path="/admin/games" element={<AdminGames />} />
+                <Route path="/admin/sandbox/:gameId" element={<AdminSandbox />} />
                 {/* Watch */}
                 <Route path="/watch/:roomCode" element={<WatchMode />} />
                 <Route path="*" element={<NotFound />} />
