@@ -28,32 +28,14 @@ export async function startGame(config: GameConfig): Promise<Phaser.Game> {
 
   let SceneClass: any;
   switch (gameId) {
-    case 'bomb-arena':
-      SceneClass = (await import('./scenes/BombArena')).default;
-      break;
-    case 'nitro-race':
-      SceneClass = (await import('./scenes/NitroRace')).default;
-      break;
     case 'apex-arena':
       SceneClass = (await import('./scenes/ApexArena')).default;
       break;
     case 'pong':
       SceneClass = (await import('./scenes/Pong')).default;
       break;
-    case 'tank-battle':
-      SceneClass = (await import('./scenes/TankBattle')).default;
-      break;
-    case 'snake-battle':
-      SceneClass = (await import('./scenes/SnakeBattle')).default;
-      break;
-    case 'platform-fighter':
-      SceneClass = (await import('./scenes/PlatformFighter')).default;
-      break;
     case 'maze-runner':
       SceneClass = (await import('./scenes/MazeRunner')).default;
-      break;
-    case 'trivia-clash':
-      SceneClass = (await import('./scenes/TriviaClash')).default;
       break;
     default:
       throw new Error(`Unknown game: ${gameId}`);
