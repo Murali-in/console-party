@@ -1,0 +1,1 @@
+DELETE FROM approved_games WHERE title IN ('TOSIOS', 'Kaetram');
