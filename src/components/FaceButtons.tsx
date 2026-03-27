@@ -1,15 +1,9 @@
 import { useState } from 'react';
 
 const BUTTON_LABELS: Record<string, Record<string, string>> = {
-  'bomb-arena':       { A: 'DASH',  B: 'THROW', X: 'BLOCK', Y: 'TAUNT' },
-  'nitro-race':       { A: 'GAS',   B: 'NITRO', X: 'BRAKE', Y: 'HORN' },
-  'apex-arena':       { A: 'FIRE',  B: 'DASH',  X: 'RELOAD',Y: 'MELEE' },
+  'apex-arena':       { A: 'FIRE',  B: 'DASH',  X: 'SHIELD',Y: 'MELEE' },
   'pong':             { A: 'LUNGE', B: 'SPIN',  X: '—',     Y: '—' },
-  'tank-battle':      { A: 'SHOOT', B: 'AIM',   X: 'REV',   Y: '—' },
-  'snake-battle':     { A: 'BOOST', B: 'TURN',  X: '—',     Y: '—' },
-  'platform-fighter': { A: 'PUNCH', B: 'JUMP',  X: 'BLOCK', Y: 'SMASH' },
   'maze-runner':      { A: 'DASH',  B: 'USE',   X: '—',     Y: '—' },
-  'trivia-clash':     { A: 'PICK',  B: 'LOCK',  X: '—',     Y: '—' },
 };
 
 const BTN_COLORS: Record<string, string> = {
