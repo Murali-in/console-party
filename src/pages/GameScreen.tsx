@@ -160,13 +160,8 @@ export default function GameScreen() {
         const t = Date.now() / 1000;
         let cx = 0, cy = 0, ba = false, bb = false;
         switch (currentGameId || state.gameId) {
-          case 'snake-battle': { const phase = Math.floor(t * 0.8) % 4; cx = [1, 0, -1, 0][phase]; cy = [0, 1, 0, -1][phase]; break; }
           case 'pong': cy = Math.sin(t * 2) * 0.5; break;
-          case 'nitro-race': cy = -0.8; cx = Math.sin(t * 0.6) * 0.7; break;
-          case 'tank-battle': cx = Math.sin(t * 0.5) * 0.6; cy = Math.cos(t * 0.4) * -0.5; ba = Math.sin(t * 2.5) > 0.5; break;
-          case 'platform-fighter': cx = Math.sin(t * 0.8) * 0.7; ba = Math.sin(t * 2) > 0.3; bb = Math.sin(t * 1.2) > 0.8; break;
           case 'maze-runner': cx = Math.sin(t * 0.5); cy = Math.cos(t * 0.4); break;
-          case 'trivia-clash': if (Math.sin(t * 0.3) > 0.7) cy = -1; break;
           default: cx = Math.sin(t * 0.7) * 0.6; cy = Math.cos(t * 0.5) * 0.6; ba = Math.sin(t * 3) > 0.7;
         }
         updateInput({ playerId: p2Id, playerIndex: 1, x: cx, y: cy, buttonA: ba, buttonB: bb });
@@ -204,13 +199,8 @@ export default function GameScreen() {
           const t = Date.now() / 1000;
           let cx = 0, cy = 0, ba = false, bb = false;
           switch (state.gameId) {
-            case 'snake-battle': { const p = Math.floor(t * 0.8) % 4; cx = [1, 0, -1, 0][p]; cy = [0, 1, 0, -1][p]; break; }
             case 'pong': cy = Math.sin(t * 2) * 0.5; break;
-            case 'nitro-race': cy = -0.8; cx = Math.sin(t * 0.6) * 0.7; bb = Math.sin(t * 2) > 0.95; break;
-            case 'tank-battle': cx = Math.sin(t * 0.5) * 0.6; cy = Math.cos(t * 0.4) * -0.5; ba = Math.sin(t * 2.5) > 0.5; break;
-            case 'platform-fighter': cx = Math.sin(t * 0.8) * 0.7; ba = Math.sin(t * 2) > 0.3; bb = Math.sin(t * 1.2) > 0.8; break;
             case 'maze-runner': cx = Math.sin(t * 0.5); cy = Math.cos(t * 0.4); break;
-            case 'trivia-clash': if (Math.sin(t * 0.3) > 0.7) cy = -1; break;
             default: cx = Math.sin(t * 0.7) * 0.6; cy = Math.cos(t * 0.5) * 0.6; ba = Math.sin(t * 3) > 0.7;
           }
           updateInput({ playerId: p2Id, playerIndex: 1, x: cx, y: cy, buttonA: ba, buttonB: bb });
