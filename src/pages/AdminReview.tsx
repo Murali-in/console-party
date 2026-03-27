@@ -175,7 +175,12 @@ export default function AdminReview() {
 
                     {/* Action buttons */}
                     <div className="flex flex-wrap gap-2">
-                      {sub.status !== 'approved' && (
+                      <Link
+                        to={`/admin/sandbox/${sub.id}`}
+                        className="bg-primary/20 text-primary border border-primary/30 font-medium px-4 py-2 rounded-lg text-xs hover:bg-primary/30 transition-colors"
+                      >
+                        🎮 Open Sandbox
+                      </Link>
                         <button
                           onClick={() => handleAction(sub.id, 'approved')}
                           disabled={actionLoading}
