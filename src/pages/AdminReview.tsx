@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -175,6 +175,12 @@ export default function AdminReview() {
 
                     {/* Action buttons */}
                     <div className="flex flex-wrap gap-2">
+                      <Link
+                        to={`/admin/sandbox/${sub.id}`}
+                        className="bg-primary/20 text-primary border border-primary/30 font-medium px-4 py-2 rounded-lg text-xs hover:bg-primary/30 transition-colors"
+                      >
+                        🎮 Open Sandbox
+                      </Link>
                       {sub.status !== 'approved' && (
                         <button
                           onClick={() => handleAction(sub.id, 'approved')}

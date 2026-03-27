@@ -14,8 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       approved_games: {
         Row: {
+          admin_notes: string | null
           approved_at: string
           cover_image_url: string | null
           description: string
@@ -29,10 +60,12 @@ export type Database = {
           min_players: number
           play_count: number
           source_url: string | null
+          status: string
           submitter_id: string | null
           title: string
         }
         Insert: {
+          admin_notes?: string | null
           approved_at?: string
           cover_image_url?: string | null
           description: string
@@ -46,10 +79,12 @@ export type Database = {
           min_players?: number
           play_count?: number
           source_url?: string | null
+          status?: string
           submitter_id?: string | null
           title: string
         }
         Update: {
+          admin_notes?: string | null
           approved_at?: string
           cover_image_url?: string | null
           description?: string
@@ -63,6 +98,7 @@ export type Database = {
           min_players?: number
           play_count?: number
           source_url?: string | null
+          status?: string
           submitter_id?: string | null
           title?: string
         }
@@ -98,30 +134,72 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
+          display_name: string | null
           email: string
           id: string
+          is_banned: boolean
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          display_name?: string | null
           email: string
           id?: string
+          is_banned?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           user_id: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          display_name?: string | null
           email?: string
           id?: string
+          is_banned?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
           username?: string | null
