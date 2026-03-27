@@ -5,20 +5,12 @@ import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 
 const BUILT_IN_GAMES = [
-  { id: 'bomb-arena', title: 'Bomb Pass', description: 'Hot potato meets survival. Pass the bomb before it blows.', genre: 'Party', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-bomb-arena' },
-  { id: 'nitro-race', title: 'Nitro Race', description: 'Top-down arcade racing with nitro boosts. 3 laps to victory.', genre: 'Racing', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-nitro-race' },
-  { id: 'apex-arena', title: 'Apex Arena', description: 'Top-down competitive shooter. First to 10 kills wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-apex-arena' },
-  { id: 'pong', title: 'Pong', description: 'Classic 2-player pong. First to 7 points wins.', genre: 'Classic', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, coverClass: 'cover-pong' },
-  { id: 'tank-battle', title: 'Tank Battle', description: 'Drive, aim, and shoot. Last tank standing wins.', genre: 'Combat', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-tank-battle' },
-  { id: 'snake-battle', title: 'Snake Battle', description: 'Multiplayer snake on a shared grid. Last snake alive wins.', genre: 'Arcade', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-snake-battle' },
-  { id: 'platform-fighter', title: 'Brawl Zone', description: 'Platform fighter with double jumps and knockback. First to 5 KOs wins.', genre: 'Fighter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-platform-fighter' },
-  { id: 'maze-runner', title: 'Maze Runner', description: 'Race through procedural mazes, collect coins, find the exit first.', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-maze-runner' },
-  { id: 'trivia-clash', title: 'Trivia Clash', description: '10 rounds of rapid-fire trivia. Point your joystick to answer.', genre: 'Quiz', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-trivia-clash' },
-  { id: 'tosios', title: 'TOSIOS', description: 'Top-down multiplayer shooter. Last player alive wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-tosios' },
-  { id: 'kaetram', title: 'Kaetram', description: 'Open-world 2D MMORPG. Explore, fight, quest together.', genre: 'RPG', minPlayers: 1, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-kaetram' },
+  { id: 'apex-arena', title: 'Apex Arena', description: 'Top-down arena shooter with shields, dashes, and tactical combat. First to 10 kills wins.', genre: 'Shooter', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-apex-arena' },
+  { id: 'pong', title: 'Pong', description: 'Classic 2-player pong with paddle spins and speed ramps. First to 7 points wins.', genre: 'Classic', minPlayers: 2, maxPlayers: 2, gameType: 'official' as const, coverClass: 'cover-pong' },
+  { id: 'maze-runner', title: 'Maze Runner', description: 'Race through procedural mazes, collect coins, dodge traps, and find the exit first.', genre: 'Puzzle', minPlayers: 2, maxPlayers: 4, gameType: 'official' as const, coverClass: 'cover-maze-runner' },
 ];
 
-const GENRES = ['All', 'Party', 'Racing', 'Shooter', 'Classic', 'Combat', 'Arcade', 'Fighter', 'Puzzle', 'Quiz', 'RPG', 'Community'];
+const GENRES = ['All', 'Shooter', 'Classic', 'Puzzle', 'Community'];
 
 interface CommunityGame {
   id: string;
