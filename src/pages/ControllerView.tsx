@@ -20,6 +20,7 @@ export default function ControllerView() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting');
+  const [connectionTimedOut, setConnectionTimedOut] = useState(false);
   const [gamePhase, setGamePhase] = useState<GamePhase>('playing');
   const [winner, setWinner] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -31,6 +32,13 @@ export default function ControllerView() {
     buttonA: false,
     buttonB: false,
   });
+
+  // Connection timeout
+  useEffect(() => {
+    if (connected) return;
+    const timer = setTimeout(() => setConnectionTimedOut(true), 15000);
+    return () => clearTimeout(timer);
+  }, [connected]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -140,9 +148,33 @@ export default function ControllerView() {
   if (!connected) {
     return (
       <div className="flex h-screen items-center justify-center bg-background px-6">
-        <div className="space-y-4 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="font-mono text-xs text-muted-foreground">Connecting to room {roomCode}...</p>
+        <div className="space-y-4 text-center max-w-xs">
+          {connectionTimedOut ? (
+            <>
+              <div className="mx-auto h-10 w-10 rounded-full border-2 border-destructive flex items-center justify-center text-destructive text-lg">!</div>
+              <p className="font-heading text-sm font-semibold text-foreground">Room not found</p>
+              <p className="font-mono text-xs text-muted-foreground">
+                Room {roomCode} doesn't seem to have an active host. Make sure the host screen is open first.
+              </p>
+              <button
+                onClick={() => { setConnectionTimedOut(false); window.location.reload(); }}
+                className="mt-2 px-4 py-2 text-xs font-mono rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors"
+              >
+                Try Again
+              </button>
+              <a
+                href="/play"
+                className="block text-xs text-muted-foreground underline mt-1"
+              >
+                Back to Join
+              </a>
+            </>
+          ) : (
+            <>
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="font-mono text-xs text-muted-foreground">Connecting to room {roomCode}...</p>
+            </>
+          )}
         </div>
       </div>
     );
