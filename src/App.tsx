@@ -22,6 +22,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
 import AdminGames from "./pages/AdminGames";
 import AdminSandbox from "./pages/AdminSandbox";
+import NotFound from "./pages/NotFound";
 import DeveloperDocs from "./pages/DeveloperDocs";
 import WatchMode from "./pages/WatchMode";
 
