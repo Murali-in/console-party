@@ -181,6 +181,7 @@ export default function AdminReview() {
                       >
                         🎮 Open Sandbox
                       </Link>
+                      {sub.status !== 'approved' && (
                         <button
                           onClick={() => handleAction(sub.id, 'approved')}
                           disabled={actionLoading}
@@ -189,7 +190,6 @@ export default function AdminReview() {
                           ✓ Approve & Publish
                         </button>
                       )}
-                      {sub.status !== 'rejected' && (
                         <button
                           onClick={() => handleAction(sub.id, 'rejected')}
                           disabled={actionLoading}
