@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,8 +17,23 @@ const STEPS = [
   { num: '03', title: 'Phones become controllers', desc: 'D-pad + buttons on your phone. Up to 4 players. No pairing, no app downloads, no accounts.' },
 ];
 
+const PLAY_MODES = [
+  { icon: '📱', title: 'Phone Only', desc: 'Play solo on your phone. Game + controller on one screen.', link: '/play/solo' },
+  { icon: '🖥️📱', title: 'Laptop + Phone', desc: 'Game on laptop, phone as controller. Scan QR to connect.', link: '/play/host' },
+  { icon: '🎮', title: 'Multiplayer', desc: 'Up to 4 players. Each phone is a controller.', link: '/play' },
+];
+
 const DEVICE_TAGS = ['TV', 'Laptop', 'Phone', 'Tablet', 'Car display'];
 const ENGINES = ['HTML5', 'Phaser 3', 'Unity', 'Godot', 'Unreal'];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] } }),
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.08 } },
+};
 
 interface PlatformStats {
   totalGames: number;
@@ -44,19 +60,11 @@ export default function Landing() {
           setStats(s => ({ ...s, totalUsers: data.length }));
         }
       });
-
-    // Get active play events in last hour
     supabase.from('play_events').select('id', { count: 'exact', head: true })
       .gte('played_at', new Date(Date.now() - 3600000).toISOString())
-      .then(({ count }) => {
-        setStats(s => ({ ...s, activeSessions: count || 0 }));
-      });
-
-    // Count approved games
+      .then(({ count }) => setStats(s => ({ ...s, activeSessions: count || 0 })));
     supabase.from('approved_games').select('id', { count: 'exact', head: true })
-      .then(({ count }) => {
-        setStats(s => ({ ...s, totalGames: 3 + (count || 0) }));
-      });
+      .then(({ count }) => setStats(s => ({ ...s, totalGames: 3 + (count || 0) })));
   }, []);
 
   return (
@@ -66,15 +74,22 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative pt-32 pb-24 px-6 noise-overlay overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <div className="max-w-2xl space-y-6">
-            <span className="font-mono text-[10px] text-primary tracking-[0.2em] uppercase">∞ Eternity Console</span>
-            <h1 className="font-heading text-[clamp(36px,5.2vw,56px)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+          <motion.div
+            className="max-w-2xl space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+          >
+            <motion.span variants={fadeUp} custom={0} className="font-mono text-[10px] text-primary tracking-[0.2em] uppercase block">
+              ∞ Eternity Console
+            </motion.span>
+            <motion.h1 variants={fadeUp} custom={1} className="font-heading text-[clamp(36px,5.2vw,56px)] font-extrabold leading-[1.05] tracking-tight text-foreground">
               Your screen.<br />Their phones.<br /><span className="text-muted-foreground">One game.</span>
-            </h1>
-            <p className="text-[15px] text-muted-foreground max-w-[420px] leading-relaxed font-body">
+            </motion.h1>
+            <motion.p variants={fadeUp} custom={2} className="text-[15px] text-muted-foreground max-w-[420px] leading-relaxed font-body">
               Play solo on phone or play together on any screen. No downloads, no accounts, no pairing. Just open and play.
-            </p>
-            <div className="flex items-center gap-3 pt-4 flex-wrap">
+            </motion.p>
+            <motion.div variants={fadeUp} custom={3} className="flex items-center gap-3 pt-4 flex-wrap">
               <Link to="/play" className="bg-primary text-primary-foreground font-heading font-semibold px-7 rounded-lg hover:opacity-90 transition-opacity text-sm h-11 inline-flex items-center">
                 Start a game →
               </Link>
@@ -84,18 +99,49 @@ export default function Landing() {
               <Link to="/games" className="border border-border text-foreground font-heading font-semibold px-7 rounded-lg hover:border-primary/30 transition-colors text-sm h-11 inline-flex items-center">
                 Browse games
               </Link>
-            </div>
-            <div className="flex items-center gap-2 pt-2 flex-wrap">
+            </motion.div>
+            <motion.div variants={fadeUp} custom={4} className="flex items-center gap-2 pt-2 flex-wrap">
               {DEVICE_TAGS.map(tag => (
                 <span key={tag} className="text-[10px] text-muted-foreground border border-border rounded-full px-3 py-1 font-mono">{tag}</span>
               ))}
-            </div>
-            {/* Live stats */}
-            <div className="flex items-center gap-6 pt-2">
+            </motion.div>
+            <motion.div variants={fadeUp} custom={5} className="flex items-center gap-6 pt-2">
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalGames} games</span>
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalUsers} contributors</span>
               {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-primary">{stats.activeSessions} playing now</span>}
-            </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Play Modes */}
+      <section className="py-20 px-6 border-t border-border">
+        <div className="max-w-5xl mx-auto">
+          <motion.span
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase block mb-10"
+          >
+            Choose how to play
+          </motion.span>
+          <div className="grid md:grid-cols-3 gap-4">
+            {PLAY_MODES.map((mode, i) => (
+              <motion.div
+                key={mode.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.4 }}
+              >
+                <Link
+                  to={mode.link}
+                  className="block p-6 rounded-[10px] border border-border bg-card hover:border-primary/30 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 h-full"
+                >
+                  <span className="text-2xl block mb-3">{mode.icon}</span>
+                  <h3 className="font-heading text-sm font-semibold text-foreground mb-1">{mode.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{mode.desc}</p>
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -103,14 +149,26 @@ export default function Landing() {
       {/* How it works */}
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">How it works</span>
-          <div className="grid md:grid-cols-3 gap-12 mt-10">
-            {STEPS.map(step => (
-              <div key={step.num} className="space-y-3">
+          <motion.span
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase block mb-10"
+          >
+            How it works
+          </motion.span>
+          <div className="grid md:grid-cols-3 gap-12">
+            {STEPS.map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.45 }}
+                className="space-y-3"
+              >
                 <span className="font-mono text-primary text-xs">{step.num}</span>
                 <h3 className="font-heading text-[15px] font-semibold text-foreground">{step.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -120,23 +178,36 @@ export default function Landing() {
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">Game library</span>
+            <motion.span
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+              className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase"
+            >
+              Game library
+            </motion.span>
             <Link to="/games" className="font-mono text-[11px] text-primary hover:text-primary/80 transition-colors">View all →</Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {GAMES.map(game => (
-              <Link key={game.id} to={`/games/${game.id}`} className="group rounded-[10px] border border-border overflow-hidden hover:border-primary/30 transition-colors duration-150 bg-card">
-                <div className={`aspect-video relative ${game.coverClass}`}>
-                  <span className="absolute top-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary">Official</span>
-                </div>
-                <div className="p-3 space-y-1">
-                  <h3 className="font-heading font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-150">{game.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-muted-foreground">{game.genre}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground">· {game.players} players</span>
+            {GAMES.map((game, i) => (
+              <motion.div
+                key={game.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.35 }}
+              >
+                <Link to={`/games/${game.id}`} className="group rounded-[10px] border border-border overflow-hidden hover:border-primary/30 transition-colors duration-150 bg-card block">
+                  <div className={`aspect-video relative ${game.coverClass}`}>
+                    <span className="absolute top-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary">Official</span>
                   </div>
-                </div>
-              </Link>
+                  <div className="p-3 space-y-1">
+                    <h3 className="font-heading font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-150">{game.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-muted-foreground">{game.genre}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground">· {game.players} players</span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -145,7 +216,13 @@ export default function Landing() {
       {/* Contribute */}
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div className="space-y-5">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="space-y-5"
+          >
             <h2 className="font-heading text-[28px] font-bold text-foreground leading-tight">Build for Eternity.</h2>
             <p className="text-[15px] text-muted-foreground leading-relaxed">
               Submit your GitHub repo or Unity build. We handle multiplayer, hosting, and security scanning. Once reviewed, your game goes live with a Community badge.
@@ -163,8 +240,14 @@ export default function Landing() {
                 Dev docs
               </Link>
             </div>
-          </div>
-          <div className="flex items-center gap-10 justify-center">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="flex items-center gap-10 justify-center"
+          >
             {[
               { val: String(stats.totalGames), label: 'games' },
               { val: '1–4', label: 'players' },
@@ -175,7 +258,7 @@ export default function Landing() {
                 <div className="text-[11px] text-muted-foreground font-mono">{stat.label}</div>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -183,25 +266,35 @@ export default function Landing() {
       {contributors.length > 0 && (
         <section className="py-16 px-6 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">Contributors of Eternity</span>
-            <p className="text-xs text-muted-foreground mt-2 mb-8">The people building and shaping Eternity Console.</p>
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+              <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase">Contributors of Eternity</span>
+              <p className="text-xs text-muted-foreground mt-2 mb-8">The people building and shaping Eternity Console.</p>
+            </motion.div>
             <div className="flex flex-wrap gap-3">
               {contributors.map((c, i) => (
-                <Link key={i} to={c.username ? `/dev/${c.username}` : '#'} className="flex items-center gap-2.5 bg-card border border-border rounded-lg px-4 py-2.5 hover:border-primary/20 transition-colors">
-                  {c.avatar_url ? (
-                    <img src={c.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-xs font-mono text-muted-foreground">{(c.username || c.email)[0]?.toUpperCase()}</span>
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05, duration: 0.3 }}
+                >
+                  <Link to={c.username ? `/dev/${c.username}` : '#'} className="flex items-center gap-2.5 bg-card border border-border rounded-lg px-4 py-2.5 hover:border-primary/20 transition-colors">
+                    {c.avatar_url ? (
+                      <img src={c.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+                        <span className="text-xs font-mono text-muted-foreground">{(c.username || c.email)[0]?.toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-heading text-xs font-semibold text-foreground block leading-tight">{c.username || c.email.split('@')[0]}</span>
+                      <span className="font-mono text-[9px] text-muted-foreground uppercase">
+                        {c.role === 'admin' ? 'Admin' : c.role === 'developer' ? 'Developer' : 'Member'}
+                      </span>
                     </div>
-                  )}
-                  <div>
-                    <span className="font-heading text-xs font-semibold text-foreground block leading-tight">{c.username || c.email.split('@')[0]}</span>
-                    <span className="font-mono text-[9px] text-muted-foreground uppercase">
-                      {c.role === 'admin' ? 'Admin' : c.role === 'developer' ? 'Developer' : 'Member'}
-                    </span>
-                  </div>
-                </Link>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </div>
