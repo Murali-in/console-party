@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
 const BUTTON_LABELS: Record<string, Record<string, string>> = {
-  'apex-arena':       { A: 'FIRE',  B: 'DASH',  X: 'SHIELD',Y: 'MELEE' },
-  'pong':             { A: 'LUNGE', B: 'SPIN',  X: '—',     Y: '—' },
-  'maze-runner':      { A: 'DASH',  B: 'USE',   X: '—',     Y: '—' },
+  'apex-arena':       { A: 'FIRE',  B: 'DASH',  X: 'SHIELD', Y: 'MELEE' },
+  'pong':             { A: 'LUNGE', B: 'SPIN',  X: 'BOOST',  Y: 'CURVE' },
+  'maze-runner':      { A: 'DASH',  B: 'USE',   X: 'REVEAL', Y: 'WARP' },
 };
 
 const BTN_COLORS: Record<string, string> = {
