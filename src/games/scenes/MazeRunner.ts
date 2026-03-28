@@ -188,18 +188,32 @@ export default class MazeRunnerScene extends Phaser.Scene {
             }
           }
         } else {
-          const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false };
+          const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
+          
+          // Speed ramping: longer hold = faster movement through maze
+          const holdFactor = Math.min(1, (inp.holdTime || 0) / 400);
+          this.MOVE_INTERVAL = this.BASE_MOVE_INTERVAL - (this.BASE_MOVE_INTERVAL - this.FAST_MOVE_INTERVAL) * holdFactor;
+
           let dx = 0, dy = 0;
           if (Math.abs(inp.x) > Math.abs(inp.y)) {
             dx = inp.x > 0.3 ? 1 : inp.x < -0.3 ? -1 : 0;
           } else {
             dy = inp.y > 0.3 ? 1 : inp.y < -0.3 ? -1 : 0;
           }
+
+          // Dash ability (button A): move 2 cells at once
+          const dashSteps = inp.buttonA && mp.dashCooldown <= 0 ? 2 : 1;
+          if (inp.buttonA && mp.dashCooldown <= 0 && (dx !== 0 || dy !== 0)) {
+            mp.dashCooldown = 1;
+          }
+
           if (dx !== 0 || dy !== 0) {
-            const nx = mp.x + dx;
-            const ny = mp.y + dy;
-            if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
-              mp.x = nx; mp.y = ny;
+            for (let step = 0; step < dashSteps; step++) {
+              const nx = mp.x + dx;
+              const ny = mp.y + dy;
+              if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
+                mp.x = nx; mp.y = ny;
+              } else break;
             }
           }
         }
