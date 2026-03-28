@@ -18,6 +18,7 @@ interface PlayerState {
   alive: boolean;
   shootCooldown: number;
   dashCooldown: number;
+  meleeCooldown: number;
   invincible: number;
   playerId: string;
   playerName: string;
@@ -26,6 +27,12 @@ interface PlayerState {
   vx: number; vy: number;
   shieldActive: boolean;
   shieldTimer: number;
+  shieldCooldown: number;
+  // Visual effect state
+  meleeSlashTimer: number;
+  dashTrailTimer: number;
+  hitFlashTimer: number;
+  speedTrailTimer: number;
 }
 
 interface Bullet {
