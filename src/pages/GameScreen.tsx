@@ -271,6 +271,8 @@ export default function GameScreen() {
       x: cur?.x ?? 0, y: cur?.y ?? 0,
       buttonA: btn === 'L1' ? pressed : (cur?.buttonA ?? false),
       buttonB: btn === 'R1' ? pressed : (cur?.buttonB ?? false),
+      buttonX: cur?.buttonX ?? false,
+      buttonY: cur?.buttonY ?? false,
     });
   };
 
@@ -284,7 +286,7 @@ export default function GameScreen() {
     if (dpad.down) y = 1;
     if (x !== 0 && y !== 0) { x *= 0.707; y *= 0.707; }
     const cur = inputMap[p1Id];
-    updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: cur?.buttonA ?? false, buttonB: cur?.buttonB ?? false });
+    updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: cur?.buttonA ?? false, buttonB: cur?.buttonB ?? false, buttonX: cur?.buttonX ?? false, buttonY: cur?.buttonY ?? false });
   };
 
   const handleFaceBtn = (btn: string, pressed: boolean) => {
@@ -298,6 +300,8 @@ export default function GameScreen() {
       y: cur?.y ?? 0,
       buttonA: btn === 'A' ? pressed : (cur?.buttonA ?? false),
       buttonB: btn === 'B' ? pressed : (cur?.buttonB ?? false),
+      buttonX: btn === 'X' ? pressed : (cur?.buttonX ?? false),
+      buttonY: btn === 'Y' ? pressed : (cur?.buttonY ?? false),
     });
   };
 

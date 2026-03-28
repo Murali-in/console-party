@@ -5,7 +5,7 @@ import { playCorrectAnswer, playWrongAnswer, playTriviaSelect } from '@/games/So
 interface TriviaConfig {
   players: RoomPlayer[];
   onGameOver: (winner: string, scores: Record<string, number>) => void;
-  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }>;
+  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean; buttonX: boolean; buttonY: boolean; holdTime: number }>;
 }
 
 interface TriviaPlayer {

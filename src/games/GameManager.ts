@@ -8,16 +8,24 @@ export interface GameConfig {
   onGameOver: (winner: string, scores: Record<string, number>) => void;
 }
 
-export const inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }> = {};
+export const inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean; buttonX: boolean; buttonY: boolean; holdTime: number }> = {};
 
 let currentGame: Phaser.Game | null = null;
 
 export function updateInput(input: PlayerInput) {
+  const prev = inputMap[input.playerId];
+  const isMoving = Math.abs(input.x) > 0.2 || Math.abs(input.y) > 0.2;
+  const wasMoving = prev && (Math.abs(prev.x) > 0.2 || Math.abs(prev.y) > 0.2);
+  const holdTime = isMoving && wasMoving ? (prev?.holdTime ?? 0) + 16 : 0;
+
   inputMap[input.playerId] = {
     x: input.x,
     y: input.y,
     buttonA: input.buttonA,
     buttonB: input.buttonB,
+    buttonX: input.buttonX ?? false,
+    buttonY: input.buttonY ?? false,
+    holdTime,
   };
 }
 
