@@ -76,6 +76,10 @@ export default function DPad({ onInput, size = 140 }: DPadProps) {
     const dir = getDirection(t.clientX, t.clientY);
     setPressed(dir);
     onInput(dir);
+    // Haptic feedback
+    if (navigator.vibrate && (dir.up || dir.down || dir.left || dir.right)) {
+      navigator.vibrate(15);
+    }
   };
 
   const armW = size * 0.33;
