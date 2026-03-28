@@ -56,7 +56,10 @@ function Btn({
   const handlePress = (pressed: boolean) => {
     setIsPressed(pressed);
     onPress(id, pressed);
-    if (pressed && cooldownMs > 0) triggerCooldown();
+    if (pressed) {
+      if (cooldownMs > 0) triggerCooldown();
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
   };
 
   // SVG cooldown ring
