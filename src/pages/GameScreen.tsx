@@ -185,18 +185,22 @@ export default function GameScreen() {
       return () => { clearTimeout(timer); clearInterval(cpuLoop); destroyGame(); stopMusic(); if (channelRef.current) leaveRoom(channelRef.current); };
     }
 
-    // Demo mode: keyboard controls
+    // Demo mode: keyboard controls (desktop) + touch controls (mobile via inline controller)
     if (state.demo) {
+      const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 768);
       const onKeyDown = (e: KeyboardEvent) => keysRef.current.add(e.key.toLowerCase());
       const onKeyUp = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
-      window.addEventListener('keydown', onKeyDown);
-      window.addEventListener('keyup', onKeyUp);
+      if (!isMobileDevice) {
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+      }
 
       const inputLoop = setInterval(() => {
-        const keys = keysRef.current;
         const p1Id = state.players[0]?.id;
         const p2Id = state.players[1]?.id;
-        if (p1Id) {
+        // On mobile, P1 input comes from touch DPad/FaceButtons — do NOT overwrite
+        if (p1Id && !isMobileDevice) {
+          const keys = keysRef.current;
           let x = 0, y = 0;
           if (keys.has('a') || keys.has('arrowleft')) x = -1;
           if (keys.has('d') || keys.has('arrowright')) x = 1;
@@ -206,10 +210,11 @@ export default function GameScreen() {
           if (len > 1) { x /= len; y /= len; }
           updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: keys.has(' ') || keys.has('j'), buttonB: keys.has('shift') || keys.has('k') });
         }
+        // CPU AI for P2 always runs
         if (p2Id) {
           const t = Date.now() / 1000;
           let cx = 0, cy = 0, ba = false, bb = false;
-          switch (state.gameId) {
+          switch (currentGameId || state.gameId) {
             case 'pong': cy = Math.sin(t * 2) * 0.5; break;
             case 'maze-runner': cx = Math.sin(t * 0.5); cy = Math.cos(t * 0.4); break;
             default: cx = Math.sin(t * 0.7) * 0.6; cy = Math.cos(t * 0.5) * 0.6; ba = Math.sin(t * 3) > 0.7;

@@ -188,11 +188,12 @@ export default class MazeRunnerScene extends Phaser.Scene {
             }
           }
         } else {
-          const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
+      const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
           
-          // Speed ramping: longer hold = faster movement through maze
-          const holdFactor = Math.min(1, (inp.holdTime || 0) / 400);
-          this.MOVE_INTERVAL = this.BASE_MOVE_INTERVAL - (this.BASE_MOVE_INTERVAL - this.FAST_MOVE_INTERVAL) * holdFactor;
+          // Speed ramping: longer hold = faster movement through maze (per-player)
+          const holdFactor = Math.min(1, (inp.holdTime || 0) / 600);
+          // Use per-player speed — don't mutate shared MOVE_INTERVAL
+          const playerMoveInterval = this.BASE_MOVE_INTERVAL - (this.BASE_MOVE_INTERVAL - this.FAST_MOVE_INTERVAL) * holdFactor;
 
           let dx = 0, dy = 0;
           if (Math.abs(inp.x) > Math.abs(inp.y)) {

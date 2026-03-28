@@ -184,9 +184,9 @@ export default class ApexArenaScene extends Phaser.Scene {
     const w = Number(this.game.config.width);
     const h = Number(this.game.config.height);
     const dt = delta / 1000;
-    const baseSpeed = 180;
-    const maxSpeed = 360;
-    const friction = 0.85;
+    const baseSpeed = 280;
+    const maxSpeed = 550;
+    const friction = 0.88;
 
     this.gameTimer -= delta;
     const timerTxt = this.children.getByName('timer') as Phaser.GameObjects.Text;
