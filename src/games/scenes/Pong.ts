@@ -5,7 +5,7 @@ import { playHit, playVictory } from '@/games/SoundFX';
 interface PongConfig {
   players: RoomPlayer[];
   onGameOver: (winner: string, scores: Record<string, number>) => void;
-  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }>;
+  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean; buttonX: boolean; buttonY: boolean; holdTime: number }>;
 }
 
 export default class PongScene extends Phaser.Scene {
