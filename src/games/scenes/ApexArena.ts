@@ -536,18 +536,52 @@ export default class ApexArenaScene extends Phaser.Scene {
       // Hit players
       let hit = false;
       this.playerStates.forEach(ps => {
-        if (ps.playerId === b.ownerId || !ps.alive || ps.invincible > 0 || ps.shieldActive) return;
+        if (ps.playerId === b.ownerId || !ps.alive || ps.invincible > 0) return;
         const dist = Phaser.Math.Distance.Between(b.sprite.x, b.sprite.y, ps.x, ps.y);
         if (dist < 18) {
+          // Shield blocks bullets with sparks
+          if (ps.shieldActive) {
+            for (let i = 0; i < 6; i++) {
+              const a = Math.random() * Math.PI * 2;
+              this.particles.push({
+                x: b.sprite.x, y: b.sprite.y,
+                vx: Math.cos(a) * 120, vy: Math.sin(a) * 120,
+                life: 250, color: 0x60a5fa, size: 2,
+              });
+            }
+            hit = true;
+            return;
+          }
+
           ps.hp--;
+          ps.hitFlashTimer = 200;
           playHit();
-          this.cameras.main.shake(80, 0.003);
-          this.spawnSparks(b.sprite.x, b.sprite.y, ps.color);
+          this.cameras.main.shake(80, 0.004);
+
+          // Blood/hit sparks
+          for (let i = 0; i < 8; i++) {
+            const a = Math.random() * Math.PI * 2;
+            this.particles.push({
+              x: b.sprite.x, y: b.sprite.y,
+              vx: Math.cos(a) * (50 + Math.random() * 80),
+              vy: Math.sin(a) * (50 + Math.random() * 80),
+              life: 350, color: 0xf87171, size: 2 + Math.random() * 2,
+            });
+          }
+
+          // Damage number
+          const dmgText = this.add.text(ps.x, ps.y - 18, '-1', {
+            fontSize: '12px', fontFamily: 'Syne', color: '#fbbf24', fontStyle: 'bold',
+          }).setOrigin(0.5).setDepth(20);
+          this.tweens.add({
+            targets: dmgText, y: ps.y - 45, alpha: 0,
+            duration: 500, onComplete: () => dmgText.destroy(),
+          });
 
           // Knockback
           const knockAngle = Math.atan2(b.vy, b.vx);
-          ps.vx += Math.cos(knockAngle) * 100;
-          ps.vy += Math.sin(knockAngle) * 100;
+          ps.vx += Math.cos(knockAngle) * 120;
+          ps.vy += Math.sin(knockAngle) * 120;
 
           if (ps.hp <= 0) {
             ps.lives--;
