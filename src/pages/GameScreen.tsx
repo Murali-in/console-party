@@ -39,6 +39,14 @@ export default function GameScreen() {
   const scoresSavedRef = useRef(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 768);
+  const [controllerHidden, setControllerHidden] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+
+  useEffect(() => {
+    const handleOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    window.addEventListener('resize', handleOrientation);
+    return () => window.removeEventListener('resize', handleOrientation);
+  }, []);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
@@ -250,7 +258,21 @@ export default function GameScreen() {
   if (!state) return null;
 
   const displayGameId = currentGameId || state.gameId;
-  const showInlineController = isMobile && (state.demo || state.soloPhone) && !gameOver;
+  const showInlineController = isMobile && (state.demo || state.soloPhone) && !gameOver && !controllerHidden;
+  const canToggleController = isMobile && (state.demo || state.soloPhone) && !gameOver;
+
+  const handleShoulderBtn = (btn: string, pressed: boolean) => {
+    // L1/R1 mapped to buttonA/buttonB for now
+    const p1Id = state.players[0]?.id;
+    if (!p1Id) return;
+    const cur = inputMap[p1Id];
+    updateInput({
+      playerId: p1Id, playerIndex: 0,
+      x: cur?.x ?? 0, y: cur?.y ?? 0,
+      buttonA: btn === 'L1' ? pressed : (cur?.buttonA ?? false),
+      buttonB: btn === 'R1' ? pressed : (cur?.buttonB ?? false),
+    });
+  };
 
   const handleDPad = (dpad: { up: boolean; down: boolean; left: boolean; right: boolean }) => {
     const p1Id = state.players[0]?.id;
@@ -387,6 +409,53 @@ export default function GameScreen() {
           </div>
         )}
       </div>
+
+      {/* Fullscreen toggle button */}
+      {canToggleController && (
+        <button
+          onClick={() => setControllerHidden(h => !h)}
+          className="absolute bottom-2 left-1/2 -translate-x-1/2 z-[70] bg-card/80 border border-border rounded-full px-3 py-1 text-[10px] font-mono text-muted-foreground backdrop-blur-sm"
+          style={{ bottom: showInlineController ? undefined : 8, ...(showInlineController ? { position: 'relative', marginBottom: -4, marginTop: -4 } : {}) }}
+        >
+          {controllerHidden ? '▲ Show Controls' : '▼ Hide Controls'}
+        </button>
+      )}
+
+      {/* Inline touch controller for mobile solo/demo */}
+      {showInlineController && (
+        <div className="shrink-0 border-t border-border bg-card/50 touch-none select-none">
+          {/* Shoulder buttons in landscape */}
+          {isLandscape && (
+            <div className="flex items-center justify-between px-4 py-1 border-b border-border/50">
+              <ShoulderButton label="L1" onPress={handleShoulderBtn} />
+              <span className="text-[9px] font-mono text-muted-foreground/50">SHOULDER</span>
+              <ShoulderButton label="R1" onPress={handleShoulderBtn} />
+            </div>
+          )}
+          <div className="flex items-center justify-between px-6 py-3" style={{ height: isLandscape ? 120 : 160 }}>
+            <DPad onInput={handleDPad} size={isLandscape ? 100 : 120} />
+            <FaceButtons onPress={handleFaceBtn} gameId={displayGameId} />
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* Shoulder button component */
+function ShoulderButton({ label, onPress }: { label: string; onPress: (btn: string, pressed: boolean) => void }) {
+  const [pressed, setPressed] = useState(false);
+  return (
+    <button
+      onTouchStart={(e) => { e.preventDefault(); setPressed(true); onPress(label, true); }}
+      onTouchEnd={(e) => { e.preventDefault(); setPressed(false); onPress(label, false); }}
+      className={`px-6 py-1.5 rounded-lg font-mono text-xs font-bold border transition-all ${
+        pressed
+          ? 'bg-primary/20 border-primary text-primary scale-95'
+          : 'border-border text-muted-foreground'
+      }`}
+    >
+      {label}
+    </button>
   );
 }
