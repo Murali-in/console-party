@@ -520,6 +520,15 @@ export default class ApexArenaScene extends Phaser.Scene {
       b.sprite.x += b.vx * dt;
       b.sprite.y += b.vy * dt;
 
+      // Bullet trail particle
+      if (Math.random() < 0.4) {
+        this.particles.push({
+          x: b.sprite.x, y: b.sprite.y,
+          vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20,
+          life: 150, color: 0xffffff, size: 1.5,
+        });
+      }
+
       if (b.sprite.x < this.arenaLeft || b.sprite.x > this.arenaRight ||
           b.sprite.y < this.arenaTop || b.sprite.y > this.arenaBottom) {
         b.sprite.destroy(); return false;
