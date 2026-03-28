@@ -258,7 +258,21 @@ export default function GameScreen() {
   if (!state) return null;
 
   const displayGameId = currentGameId || state.gameId;
-  const showInlineController = isMobile && (state.demo || state.soloPhone) && !gameOver;
+  const showInlineController = isMobile && (state.demo || state.soloPhone) && !gameOver && !controllerHidden;
+  const canToggleController = isMobile && (state.demo || state.soloPhone) && !gameOver;
+
+  const handleShoulderBtn = (btn: string, pressed: boolean) => {
+    // L1/R1 mapped to buttonA/buttonB for now
+    const p1Id = state.players[0]?.id;
+    if (!p1Id) return;
+    const cur = inputMap[p1Id];
+    updateInput({
+      playerId: p1Id, playerIndex: 0,
+      x: cur?.x ?? 0, y: cur?.y ?? 0,
+      buttonA: btn === 'L1' ? pressed : (cur?.buttonA ?? false),
+      buttonB: btn === 'R1' ? pressed : (cur?.buttonB ?? false),
+    });
+  };
 
   const handleDPad = (dpad: { up: boolean; down: boolean; left: boolean; right: boolean }) => {
     const p1Id = state.players[0]?.id;
