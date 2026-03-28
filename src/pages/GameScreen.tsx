@@ -261,14 +261,14 @@ export default function GameScreen() {
     if (dpad.up) y = -1;
     if (dpad.down) y = 1;
     if (x !== 0 && y !== 0) { x *= 0.707; y *= 0.707; }
-    const cur = inputMap.get(p1Id);
+    const cur = inputMap[p1Id];
     updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: cur?.buttonA ?? false, buttonB: cur?.buttonB ?? false });
   };
 
   const handleFaceBtn = (btn: string, pressed: boolean) => {
     const p1Id = state.players[0]?.id;
     if (!p1Id) return;
-    const cur = inputMap.get(p1Id);
+    const cur = inputMap[p1Id];
     updateInput({
       playerId: p1Id,
       playerIndex: 0,
