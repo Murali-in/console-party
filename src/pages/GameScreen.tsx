@@ -38,6 +38,7 @@ export default function GameScreen() {
   const [muted, setMuted] = useState(getIsMuted());
   const scoresSavedRef = useRef(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 768);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
