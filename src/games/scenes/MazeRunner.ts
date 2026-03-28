@@ -33,6 +33,7 @@ export default class MazeRunnerScene extends Phaser.Scene {
   private MAX_ROUNDS = 3;
   private hudText!: Phaser.GameObjects.Text;
   private roundText!: Phaser.GameObjects.Text;
+  private moveTimer = 0;
   private MOVE_INTERVAL = 100;
   private BASE_MOVE_INTERVAL = 100;
   private FAST_MOVE_INTERVAL = 45;
