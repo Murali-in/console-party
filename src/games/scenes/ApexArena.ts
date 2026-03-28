@@ -242,43 +242,137 @@ export default class ApexArenaScene extends Phaser.Scene {
 
       const inp = this.inputMap[ps.playerId] || { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
 
-      // Speed ramping: hold longer = faster (walk → run)
-      const holdFactor = Math.min(1, (inp.holdTime || 0) / 600); // 0.6s to reach max
-      const speed = baseSpeed + (maxSpeed - baseSpeed) * holdFactor;
+      // === SPEED RAMPING: hold longer = exponentially faster ===
+      const holdMs = inp.holdTime || 0;
+      const holdFactor = Math.min(1, holdMs / 400); // 0.4s to max
+      const speedCurve = holdFactor * holdFactor; // exponential feel
+      const speed = baseSpeed + (maxSpeed - baseSpeed) * speedCurve;
 
-      // Shield (button X) - absorbs damage while active, 3s cooldown
-      if (inp.buttonX && !ps.shieldActive && ps.shieldTimer <= 0) {
+      // Speed trail particles when running fast
+      if (holdFactor > 0.5 && (Math.abs(inp.x) > 0.2 || Math.abs(inp.y) > 0.2)) {
+        ps.speedTrailTimer -= delta;
+        if (ps.speedTrailTimer <= 0) {
+          ps.speedTrailTimer = 60;
+          this.particles.push({
+            x: ps.x - inp.x * 8 + (Math.random() - 0.5) * 6,
+            y: ps.y - inp.y * 8 + (Math.random() - 0.5) * 6,
+            vx: -inp.x * 30, vy: -inp.y * 30,
+            life: 200, color: ps.color, size: 2 + holdFactor * 3,
+          });
+        }
+      }
+
+      // Decay timers
+      ps.shootCooldown -= delta;
+      ps.dashCooldown -= delta;
+      ps.meleeCooldown -= delta;
+      ps.meleeSlashTimer -= delta;
+      ps.dashTrailTimer -= delta;
+      ps.hitFlashTimer -= delta;
+
+      // === SHIELD (button X) — glowing energy bubble ===
+      if (ps.shieldCooldown > 0) ps.shieldCooldown -= delta;
+      if (inp.buttonX && !ps.shieldActive && ps.shieldCooldown <= 0) {
         ps.shieldActive = true;
-        ps.shieldTimer = 1500; // shield lasts 1.5s
+        ps.shieldTimer = 2000; // 2s duration
+        // Shield activation burst
+        for (let i = 0; i < 12; i++) {
+          const a = (i / 12) * Math.PI * 2;
+          this.particles.push({
+            x: ps.x + Math.cos(a) * 22, y: ps.y + Math.sin(a) * 22,
+            vx: Math.cos(a) * 40, vy: Math.sin(a) * 40,
+            life: 400, color: 0x60a5fa, size: 3,
+          });
+        }
       }
       if (ps.shieldActive) {
         ps.shieldTimer -= delta;
         if (ps.shieldTimer <= 0) {
           ps.shieldActive = false;
-          ps.shieldTimer = 3000; // cooldown
+          ps.shieldCooldown = 4000; // 4s cooldown
+          // Shield break particles
+          for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2;
+            this.particles.push({
+              x: ps.x + Math.cos(a) * 24, y: ps.y + Math.sin(a) * 24,
+              vx: Math.cos(a) * 80, vy: Math.sin(a) * 80,
+              life: 300, color: 0x3b82f6, size: 2,
+            });
+          }
         }
-        // Draw shield aura
-        const shieldGfx = ps.body.getAt(1) as Phaser.GameObjects.Arc;
-        if (shieldGfx) shieldGfx.setAlpha(0.5 + Math.sin(_time * 0.01) * 0.2);
-      } else {
-        ps.shieldTimer = Math.max(0, ps.shieldTimer - delta);
+        // Draw animated shield bubble
+        const shieldAlpha = 0.25 + Math.sin(_time * 0.008) * 0.1;
+        const shieldRadius = 24 + Math.sin(_time * 0.012) * 2;
+        this.particleGfx.lineStyle(2, 0x60a5fa, shieldAlpha + 0.3);
+        this.particleGfx.strokeCircle(ps.x, ps.y, shieldRadius);
+        this.particleGfx.fillStyle(0x60a5fa, shieldAlpha * 0.4);
+        this.particleGfx.fillCircle(ps.x, ps.y, shieldRadius);
+        // Hex pattern on shield
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 + _time * 0.002;
+          const sx = ps.x + Math.cos(a) * shieldRadius * 0.7;
+          const sy = ps.y + Math.sin(a) * shieldRadius * 0.7;
+          this.particleGfx.fillStyle(0x93c5fd, shieldAlpha * 0.6);
+          this.particleGfx.fillCircle(sx, sy, 2);
+        }
+        // Blocked bullets create shield spark effect
       }
 
-      // Melee attack (button Y) - short range high damage
-      if (inp.buttonY && ps.dashCooldown <= 0) {
-        ps.dashCooldown = 800;
-        // Melee hit: check nearby enemies
+      // === MELEE (button Y) — slash arc + impact ===
+      if (inp.buttonY && ps.meleeCooldown <= 0) {
+        ps.meleeCooldown = 1000;
+        ps.meleeSlashTimer = 250; // visible for 250ms
+
+        // Check nearby enemies for melee hit
         this.playerStates.forEach(target => {
-          if (target.playerId === ps.playerId || !target.alive || target.invincible > 0 || target.shieldActive) return;
+          if (target.playerId === ps.playerId || !target.alive || target.invincible > 0) return;
           const dist = Phaser.Math.Distance.Between(ps.x, ps.y, target.x, target.y);
-          if (dist < 45) {
+          if (dist < 50) {
+            // Shield blocks melee but takes a big hit
+            if (target.shieldActive) {
+              target.shieldTimer = Math.max(0, target.shieldTimer - 800);
+              // Shield impact sparks
+              for (let i = 0; i < 8; i++) {
+                this.particles.push({
+                  x: target.x + (Math.random() - 0.5) * 20,
+                  y: target.y + (Math.random() - 0.5) * 20,
+                  vx: (Math.random() - 0.5) * 150, vy: (Math.random() - 0.5) * 150,
+                  life: 300, color: 0x60a5fa, size: 3,
+                });
+              }
+              this.cameras.main.shake(60, 0.003);
+              return;
+            }
+
             target.hp -= 2;
+            target.hitFlashTimer = 200;
             playHit();
-            this.cameras.main.shake(100, 0.005);
+            this.cameras.main.shake(120, 0.008);
+
+            // Heavy knockback
             const knockAngle = Math.atan2(target.y - ps.y, target.x - ps.x);
-            target.vx += Math.cos(knockAngle) * 250;
-            target.vy += Math.sin(knockAngle) * 250;
-            this.spawnSparks(target.x, target.y, ps.color);
+            target.vx += Math.cos(knockAngle) * 350;
+            target.vy += Math.sin(knockAngle) * 350;
+
+            // Hit impact: red X slash on target
+            for (let i = 0; i < 12; i++) {
+              const a = Math.random() * Math.PI * 2;
+              this.particles.push({
+                x: target.x, y: target.y,
+                vx: Math.cos(a) * (80 + Math.random() * 80),
+                vy: Math.sin(a) * (80 + Math.random() * 80),
+                life: 400, color: 0xf87171, size: 2 + Math.random() * 3,
+              });
+            }
+            // Damage number popup
+            const dmgText = this.add.text(target.x, target.y - 20, '-2', {
+              fontSize: '14px', fontFamily: 'Syne', color: '#f87171', fontStyle: 'bold',
+            }).setOrigin(0.5).setDepth(20);
+            this.tweens.add({
+              targets: dmgText, y: target.y - 50, alpha: 0,
+              duration: 600, onComplete: () => dmgText.destroy(),
+            });
+
             if (target.hp <= 0) {
               target.lives--;
               target.alive = false;
@@ -291,31 +385,67 @@ export default class ApexArenaScene extends Phaser.Scene {
             }
           }
         });
-        // Melee visual: ring burst
-        for (let i = 0; i < 10; i++) {
-          const a = (i / 10) * Math.PI * 2;
+      }
+
+      // Draw melee slash arc visual
+      if (ps.meleeSlashTimer > 0) {
+        const slashProgress = 1 - (ps.meleeSlashTimer / 250);
+        const arcStart = ps.lastAngle - 0.8;
+        const arcEnd = ps.lastAngle + 0.8;
+        const slashRadius = 30 + slashProgress * 15;
+        const slashAlpha = 1 - slashProgress;
+
+        // Draw slash arc
+        this.particleGfx.lineStyle(4 - slashProgress * 3, ps.color, slashAlpha * 0.8);
+        this.particleGfx.beginPath();
+        this.particleGfx.arc(ps.x, ps.y, slashRadius, arcStart, arcEnd, false);
+        this.particleGfx.strokePath();
+
+        // Inner glow arc
+        this.particleGfx.lineStyle(2, 0xffffff, slashAlpha * 0.4);
+        this.particleGfx.beginPath();
+        this.particleGfx.arc(ps.x, ps.y, slashRadius - 3, arcStart + 0.1, arcEnd - 0.1, false);
+        this.particleGfx.strokePath();
+      }
+
+      // === DASH (button B) — afterimage trail ===
+      if (inp.buttonB && ps.dashCooldown <= 0 && (Math.abs(inp.x) > 0.2 || Math.abs(inp.y) > 0.2)) {
+        ps.dashCooldown = 2000;
+        ps.dashTrailTimer = 200;
+        const dashPower = 600;
+        ps.vx = inp.x * dashPower;
+        ps.vy = inp.y * dashPower;
+
+        // Dash burst particles (directional cone)
+        const dashAngle = Math.atan2(inp.y, inp.x);
+        for (let i = 0; i < 15; i++) {
+          const spread = (Math.random() - 0.5) * 1.2;
           this.particles.push({
-            x: ps.x + Math.cos(a) * 25, y: ps.y + Math.sin(a) * 25,
-            vx: Math.cos(a) * 60, vy: Math.sin(a) * 60,
-            life: 200, color: ps.color, size: 3,
+            x: ps.x, y: ps.y,
+            vx: Math.cos(dashAngle + Math.PI + spread) * (60 + Math.random() * 80),
+            vy: Math.sin(dashAngle + Math.PI + spread) * (60 + Math.random() * 80),
+            life: 350, color: ps.color, size: 3 + Math.random() * 3,
           });
         }
       }
 
-      // Dash (button B)
-      ps.dashCooldown -= delta;
-      if (inp.buttonB && ps.dashCooldown <= 0 && (Math.abs(inp.x) > 0.2 || Math.abs(inp.y) > 0.2)) {
-        ps.dashCooldown = 2000;
-        const dashPower = 500;
-        ps.vx = inp.x * dashPower;
-        ps.vy = inp.y * dashPower;
-        for (let i = 0; i < 8; i++) {
-          this.particles.push({
-            x: ps.x, y: ps.y,
-            vx: (Math.random() - 0.5) * 100, vy: (Math.random() - 0.5) * 100,
-            life: 300, color: ps.color, size: 4,
-          });
-        }
+      // Draw dash afterimages
+      if (ps.dashTrailTimer > 0) {
+        const trailAlpha = ps.dashTrailTimer / 200;
+        this.particleGfx.fillStyle(ps.color, trailAlpha * 0.3);
+        this.particleGfx.fillCircle(ps.x - ps.vx * dt * 2, ps.y - ps.vy * dt * 2, 12);
+        this.particleGfx.fillStyle(ps.color, trailAlpha * 0.15);
+        this.particleGfx.fillCircle(ps.x - ps.vx * dt * 4, ps.y - ps.vy * dt * 4, 10);
+      }
+
+      // === HIT FLASH — red tint on damage ===
+      if (ps.hitFlashTimer > 0) {
+        const flashAlpha = ps.hitFlashTimer / 200;
+        this.particleGfx.fillStyle(0xff0000, flashAlpha * 0.3);
+        this.particleGfx.fillCircle(ps.x, ps.y, 16);
+        ps.body.setAlpha(0.6 + Math.sin(_time * 0.03) * 0.3);
+      } else if (ps.invincible <= 0) {
+        ps.body.setAlpha(1);
       }
 
       // Movement with speed ramping
