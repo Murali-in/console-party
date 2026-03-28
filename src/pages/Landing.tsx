@@ -337,7 +337,7 @@ export default function Landing() {
                     <div>
                       <span className="font-heading text-xs font-semibold text-foreground block leading-tight">{c.username || c.email.split('@')[0]}</span>
                       <span className="font-mono text-[9px] text-muted-foreground uppercase">
-                        {c.role === 'admin' ? 'Admin' : c.role === 'developer' ? 'Developer' : 'Member'}
+                        {c.role === 'admin' ? 'Founder & Admin' : c.role === 'developer' ? 'Developer' : 'Member'}
                       </span>
                     </div>
                   </Link>
