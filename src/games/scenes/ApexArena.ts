@@ -176,7 +176,8 @@ export default class ApexArenaScene extends Phaser.Scene {
     const w = Number(this.game.config.width);
     const h = Number(this.game.config.height);
     const dt = delta / 1000;
-    const speed = 240;
+    const baseSpeed = 180;
+    const maxSpeed = 360;
     const friction = 0.85;
 
     this.gameTimer -= delta;
@@ -231,7 +232,67 @@ export default class ApexArenaScene extends Phaser.Scene {
         if (ps.invincible <= 0) ps.body.setAlpha(1);
       }
 
-      const inp = this.inputMap[ps.playerId] || { x: 0, y: 0, buttonA: false, buttonB: false };
+      const inp = this.inputMap[ps.playerId] || { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
+
+      // Speed ramping: hold longer = faster (walk → run)
+      const holdFactor = Math.min(1, (inp.holdTime || 0) / 600); // 0.6s to reach max
+      const speed = baseSpeed + (maxSpeed - baseSpeed) * holdFactor;
+
+      // Shield (button X) - absorbs damage while active, 3s cooldown
+      if (inp.buttonX && !ps.shieldActive && ps.shieldTimer <= 0) {
+        ps.shieldActive = true;
+        ps.shieldTimer = 1500; // shield lasts 1.5s
+      }
+      if (ps.shieldActive) {
+        ps.shieldTimer -= delta;
+        if (ps.shieldTimer <= 0) {
+          ps.shieldActive = false;
+          ps.shieldTimer = 3000; // cooldown
+        }
+        // Draw shield aura
+        const shieldGfx = ps.body.getAt(1) as Phaser.GameObjects.Arc;
+        if (shieldGfx) shieldGfx.setAlpha(0.5 + Math.sin(_time * 0.01) * 0.2);
+      } else {
+        ps.shieldTimer = Math.max(0, ps.shieldTimer - delta);
+      }
+
+      // Melee attack (button Y) - short range high damage
+      if (inp.buttonY && ps.dashCooldown <= 0) {
+        ps.dashCooldown = 800;
+        // Melee hit: check nearby enemies
+        this.playerStates.forEach(target => {
+          if (target.playerId === ps.playerId || !target.alive || target.invincible > 0 || target.shieldActive) return;
+          const dist = Phaser.Math.Distance.Between(ps.x, ps.y, target.x, target.y);
+          if (dist < 45) {
+            target.hp -= 2;
+            playHit();
+            this.cameras.main.shake(100, 0.005);
+            const knockAngle = Math.atan2(target.y - ps.y, target.x - ps.x);
+            target.vx += Math.cos(knockAngle) * 250;
+            target.vy += Math.sin(knockAngle) * 250;
+            this.spawnSparks(target.x, target.y, ps.color);
+            if (target.hp <= 0) {
+              target.lives--;
+              target.alive = false;
+              target.respawnTimer = 3000;
+              target.body.setVisible(false);
+              playEliminate();
+              this.spawnExplosion(target.x, target.y, target.color);
+              ps.kills++;
+              this.addKillFeed(`${ps.playerName} ⚔ ${target.playerName}`);
+            }
+          }
+        });
+        // Melee visual: ring burst
+        for (let i = 0; i < 10; i++) {
+          const a = (i / 10) * Math.PI * 2;
+          this.particles.push({
+            x: ps.x + Math.cos(a) * 25, y: ps.y + Math.sin(a) * 25,
+            vx: Math.cos(a) * 60, vy: Math.sin(a) * 60,
+            life: 200, color: ps.color, size: 3,
+          });
+        }
+      }
 
       // Dash (button B)
       ps.dashCooldown -= delta;
@@ -240,7 +301,6 @@ export default class ApexArenaScene extends Phaser.Scene {
         const dashPower = 500;
         ps.vx = inp.x * dashPower;
         ps.vy = inp.y * dashPower;
-        // Dash trail particles
         for (let i = 0; i < 8; i++) {
           this.particles.push({
             x: ps.x, y: ps.y,
@@ -250,7 +310,7 @@ export default class ApexArenaScene extends Phaser.Scene {
         }
       }
 
-      // Movement
+      // Movement with speed ramping
       ps.vx += inp.x * speed * dt;
       ps.vy += inp.y * speed * dt;
       ps.vx *= friction;
