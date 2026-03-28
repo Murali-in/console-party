@@ -9,6 +9,8 @@ export interface PlayerInput {
   y: number;
   buttonA: boolean;
   buttonB: boolean;
+  buttonX?: boolean;
+  buttonY?: boolean;
 }
 
 export interface RoomPlayer {
