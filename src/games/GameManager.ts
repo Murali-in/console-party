@@ -14,9 +14,15 @@ let currentGame: Phaser.Game | null = null;
 
 export function updateInput(input: PlayerInput) {
   const prev = inputMap[input.playerId];
-  const isMoving = Math.abs(input.x) > 0.2 || Math.abs(input.y) > 0.2;
-  const wasMoving = prev && (Math.abs(prev.x) > 0.2 || Math.abs(prev.y) > 0.2);
-  const holdTime = isMoving && wasMoving ? (prev?.holdTime ?? 0) + 16 : 0;
+  const now = performance.now();
+  const isMoving = Math.abs(input.x) > 0.15 || Math.abs(input.y) > 0.15;
+  const wasMoving = prev && (Math.abs(prev.x) > 0.15 || Math.abs(prev.y) > 0.15);
+
+  // holdTime accumulates real elapsed ms while direction is held
+  let holdTime = 0;
+  if (isMoving && wasMoving && prev) {
+    holdTime = prev.holdTime + (now - ((prev as any)._lastUpdate || now));
+  }
 
   inputMap[input.playerId] = {
     x: input.x,
@@ -26,7 +32,8 @@ export function updateInput(input: PlayerInput) {
     buttonX: input.buttonX ?? false,
     buttonY: input.buttonY ?? false,
     holdTime,
-  };
+    _lastUpdate: now,
+  } as any;
 }
 
 export async function startGame(config: GameConfig): Promise<Phaser.Game> {
