@@ -87,7 +87,6 @@ export default function Landing() {
         }
       });
     supabase.from('play_events').select('id', { count: 'exact', head: true })
-      .gte('played_at', new Date(Date.now() - 3600000).toISOString())
       .then(({ count }) => setStats(s => ({ ...s, activeSessions: count || 0 })));
     supabase.from('approved_games').select('id', { count: 'exact', head: true })
       .then(({ count }) => setStats(s => ({ ...s, totalGames: 3 + (count || 0) })));
@@ -150,7 +149,7 @@ export default function Landing() {
             <motion.div variants={fadeUp} custom={5} className="flex items-center gap-6 pt-2">
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalGames} games</span>
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalUsers} players</span>
-              {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-primary">{stats.activeSessions} playing now</span>}
+              {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-muted-foreground">{stats.activeSessions} games played</span>}
               {onlineCount > 0 && (
                 <span className="font-mono text-[10px] text-primary flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
