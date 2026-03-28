@@ -48,7 +48,7 @@ const GameCard = forwardRef<HTMLButtonElement, GameCardProps>(function GameCard(
           <span className="font-mono text-[10px] text-muted-foreground">{genre}</span>
           <span className="font-mono text-[10px] text-muted-foreground">· {minPlayers}–{maxPlayers} players</span>
         </div>
-        {contributorName && gameType === 'community' && (
+        {contributorName && (
           <p className="text-[10px] text-muted-foreground">by {contributorName}</p>
         )}
       </div>
