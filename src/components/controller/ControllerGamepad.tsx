@@ -45,6 +45,8 @@ export default function ControllerGamepad({
   const handleBtn = (btn: string, pressed: boolean) => {
     if (btn === 'A') inputRef.current.buttonA = pressed;
     if (btn === 'B') inputRef.current.buttonB = pressed;
+    if (btn === 'X') (inputRef.current as any).buttonX = pressed;
+    if (btn === 'Y') (inputRef.current as any).buttonY = pressed;
     emitInput();
   };
 
