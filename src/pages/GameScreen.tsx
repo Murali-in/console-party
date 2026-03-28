@@ -5,6 +5,8 @@ import { startGame, destroyGame, updateInput, inputMap } from '@/games/GameManag
 import { startMusic, stopMusic, toggleMute, getIsMuted } from '@/games/MusicManager';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import DPad from '@/components/DPad';
+import FaceButtons from '@/components/FaceButtons';
 
 const BUILT_IN_GAMES = [
   { id: 'apex-arena', title: 'Apex Arena', type: 'phaser' },
