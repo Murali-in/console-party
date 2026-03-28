@@ -14,6 +14,7 @@ interface MazePlayer {
   name: string; score: number;
   dashCooldown: number;
   trail: { x: number; y: number; alpha: number }[];
+  moveAccum: number; // per-player move accumulator
 }
 
 export default class MazeRunnerScene extends Phaser.Scene {
@@ -64,6 +65,7 @@ export default class MazeRunnerScene extends Phaser.Scene {
         colorHex: p.color,
         name: p.name, score: 0, dashCooldown: 0,
         trail: [],
+        moveAccum: 0,
       });
     });
 
@@ -159,108 +161,131 @@ export default class MazeRunnerScene extends Phaser.Scene {
     if (this.gameEnded) return;
 
     this.coinPulse += delta * 0.003;
-    this.moveTimer += delta;
 
-    if (this.moveTimer >= this.MOVE_INTERVAL) {
-      this.moveTimer = 0;
+    this.mazePlayers.forEach((mp, pid) => {
+      mp.dashCooldown = Math.max(0, mp.dashCooldown - delta / 1000);
 
-      this.mazePlayers.forEach((mp, pid) => {
-        mp.dashCooldown = Math.max(0, mp.dashCooldown - this.MOVE_INTERVAL / 1000);
+      // Determine per-player move interval
+      let playerInterval = this.BASE_MOVE_INTERVAL;
 
-        // CPU AI
-        if (pid.startsWith('demo-cpu') || pid.startsWith('cpu-')) {
-          const dx = this.exit.x - mp.x;
-          const dy = this.exit.y - mp.y;
-          const tryDirs: { x: number; y: number }[] = [];
-          if (Math.random() < 0.7) {
-            if (dx > 0) tryDirs.push({ x: 1, y: 0 });
-            else if (dx < 0) tryDirs.push({ x: -1, y: 0 });
-            if (dy > 0) tryDirs.push({ x: 0, y: 1 });
-            else if (dy < 0) tryDirs.push({ x: 0, y: -1 });
+      if (pid.startsWith('demo-cpu') || pid.startsWith('cpu-')) {
+        playerInterval = 120; // CPU moves at fixed rate
+      } else {
+        const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
+        const holdFactor = Math.min(1, (inp.holdTime || 0) / 600);
+        playerInterval = this.BASE_MOVE_INTERVAL - (this.BASE_MOVE_INTERVAL - this.FAST_MOVE_INTERVAL) * holdFactor;
+      }
+
+      mp.moveAccum += delta;
+      if (mp.moveAccum < playerInterval) return;
+      mp.moveAccum = 0;
+
+      // CPU AI
+      if (pid.startsWith('demo-cpu') || pid.startsWith('cpu-')) {
+        const ddx = this.exit.x - mp.x;
+        const ddy = this.exit.y - mp.y;
+        const tryDirs: { x: number; y: number }[] = [];
+        if (Math.random() < 0.7) {
+          if (ddx > 0) tryDirs.push({ x: 1, y: 0 });
+          else if (ddx < 0) tryDirs.push({ x: -1, y: 0 });
+          if (ddy > 0) tryDirs.push({ x: 0, y: 1 });
+          else if (ddy < 0) tryDirs.push({ x: 0, y: -1 });
+        }
+        const allDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+        for (const d of allDirs.sort(() => Math.random() - 0.5)) tryDirs.push(d);
+        for (const d of tryDirs) {
+          const nx = mp.x + d.x;
+          const ny = mp.y + d.y;
+          if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
+            mp.x = nx; mp.y = ny; break;
           }
-          const allDirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
-          for (const d of allDirs.sort(() => Math.random() - 0.5)) tryDirs.push(d);
-          for (const d of tryDirs) {
-            const nx = mp.x + d.x;
-            const ny = mp.y + d.y;
-            if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
-              mp.x = nx; mp.y = ny; break;
-            }
-          }
+        }
+      } else {
+        const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
+
+        let dx = 0, dy = 0;
+        if (Math.abs(inp.x) > Math.abs(inp.y)) {
+          dx = inp.x > 0.3 ? 1 : inp.x < -0.3 ? -1 : 0;
         } else {
-      const inp = this.inputMap[pid] ?? { x: 0, y: 0, buttonA: false, buttonB: false, buttonX: false, buttonY: false, holdTime: 0 };
-          
-          // Speed ramping: longer hold = faster movement through maze (per-player)
-          const holdFactor = Math.min(1, (inp.holdTime || 0) / 600);
-          // Use per-player speed — don't mutate shared MOVE_INTERVAL
-          const playerMoveInterval = this.BASE_MOVE_INTERVAL - (this.BASE_MOVE_INTERVAL - this.FAST_MOVE_INTERVAL) * holdFactor;
+          dy = inp.y > 0.3 ? 1 : inp.y < -0.3 ? -1 : 0;
+        }
 
-          let dx = 0, dy = 0;
-          if (Math.abs(inp.x) > Math.abs(inp.y)) {
-            dx = inp.x > 0.3 ? 1 : inp.x < -0.3 ? -1 : 0;
-          } else {
-            dy = inp.y > 0.3 ? 1 : inp.y < -0.3 ? -1 : 0;
-          }
-
-          // Dash ability (button A): move 2 cells at once
-          const dashSteps = inp.buttonA && mp.dashCooldown <= 0 ? 2 : 1;
-          if (inp.buttonA && mp.dashCooldown <= 0 && (dx !== 0 || dy !== 0)) {
-            mp.dashCooldown = 1;
-          }
-
-          if (dx !== 0 || dy !== 0) {
-            for (let step = 0; step < dashSteps; step++) {
-              const nx = mp.x + dx;
-              const ny = mp.y + dy;
-              if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
-                mp.x = nx; mp.y = ny;
-              } else break;
+        // Button X (REVEAL): break a wall in the direction you're facing
+        if (inp.buttonX && (dx !== 0 || dy !== 0)) {
+          const wallX = mp.x + dx;
+          const wallY = mp.y + dy;
+          if (wallX > 0 && wallX < this.COLS - 1 && wallY > 0 && wallY < this.ROWS - 1 && this.walls[wallY][wallX]) {
+            this.walls[wallY][wallX] = false;
+            // Wall break particles
+            const cx = wallX * this.CELL + this.CELL / 2;
+            const cy = wallY * this.CELL + this.CELL / 2;
+            for (let i = 0; i < 10; i++) {
+              this.particles.push({
+                x: cx + (Math.random() - 0.5) * 12, y: cy + (Math.random() - 0.5) * 12,
+                vx: (Math.random() - 0.5) * 120 + dx * 60, vy: (Math.random() - 0.5) * 120 + dy * 60,
+                life: 500, color: 0x6c63ff, size: 2 + Math.random() * 3,
+              });
             }
           }
         }
 
-        // Trail
-        mp.trail.push({ x: mp.x, y: mp.y, alpha: 0.5 });
-        if (mp.trail.length > 6) mp.trail.shift();
-
-        // Collect coins
-        const key = `${mp.x},${mp.y}`;
-        if (this.coins.has(key)) {
-          this.coins.delete(key);
-          mp.score++;
-          playCoinCollect();
-          // Coin collect particles
-          const cx = mp.x * this.CELL + this.CELL / 2;
-          const cy = mp.y * this.CELL + this.CELL / 2;
-          for (let i = 0; i < 6; i++) {
-            this.particles.push({
-              x: cx, y: cy,
-              vx: (Math.random() - 0.5) * 80, vy: (Math.random() - 0.5) * 80,
-              life: 300, color: 0xfbbf24, size: 3,
-            });
-          }
+        // Dash ability (button A): move 2 cells at once
+        const dashSteps = inp.buttonA && mp.dashCooldown <= 0 ? 2 : 1;
+        if (inp.buttonA && mp.dashCooldown <= 0 && (dx !== 0 || dy !== 0)) {
+          mp.dashCooldown = 1;
         }
 
-        // Reach exit
-        if (mp.x === this.exit.x && mp.y === this.exit.y) {
-          mp.score += 5;
-          playExitReached();
-          if (this.round >= this.MAX_ROUNDS) {
-            this.gameEnded = true;
-            const scores: Record<string, number> = {};
-            this.mazePlayers.forEach(p => { scores[p.name] = p.score; });
-            let winner = '', best = -1;
-            this.mazePlayers.forEach(p => { if (p.score > best) { best = p.score; winner = p.name; } });
-            this.onGameOver(winner, scores);
-            return;
-          } else {
-            this.round++;
-            this.generateMaze();
-            this.showRoundText();
+        if (dx !== 0 || dy !== 0) {
+          for (let step = 0; step < dashSteps; step++) {
+            const nx = mp.x + dx;
+            const ny = mp.y + dy;
+            if (nx >= 0 && nx < this.COLS && ny >= 0 && ny < this.ROWS && !this.walls[ny][nx]) {
+              mp.x = nx; mp.y = ny;
+            } else break;
           }
         }
-      });
-    }
+      }
+
+      // Trail
+      mp.trail.push({ x: mp.x, y: mp.y, alpha: 0.5 });
+      if (mp.trail.length > 6) mp.trail.shift();
+
+      // Collect coins
+      const key = `${mp.x},${mp.y}`;
+      if (this.coins.has(key)) {
+        this.coins.delete(key);
+        mp.score++;
+        playCoinCollect();
+        const cx = mp.x * this.CELL + this.CELL / 2;
+        const cy = mp.y * this.CELL + this.CELL / 2;
+        for (let i = 0; i < 6; i++) {
+          this.particles.push({
+            x: cx, y: cy,
+            vx: (Math.random() - 0.5) * 80, vy: (Math.random() - 0.5) * 80,
+            life: 300, color: 0xfbbf24, size: 3,
+          });
+        }
+      }
+
+      // Reach exit
+      if (mp.x === this.exit.x && mp.y === this.exit.y) {
+        mp.score += 5;
+        playExitReached();
+        if (this.round >= this.MAX_ROUNDS) {
+          this.gameEnded = true;
+          const scores: Record<string, number> = {};
+          this.mazePlayers.forEach(p => { scores[p.name] = p.score; });
+          let winner = '', best = -1;
+          this.mazePlayers.forEach(p => { if (p.score > best) { best = p.score; winner = p.name; } });
+          this.onGameOver(winner, scores);
+          return;
+        } else {
+          this.round++;
+          this.generateMaze();
+          this.showRoundText();
+        }
+      }
+    });
 
     this.draw(delta);
   }
