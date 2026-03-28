@@ -271,6 +271,8 @@ export default function GameScreen() {
       x: cur?.x ?? 0, y: cur?.y ?? 0,
       buttonA: btn === 'L1' ? pressed : (cur?.buttonA ?? false),
       buttonB: btn === 'R1' ? pressed : (cur?.buttonB ?? false),
+      buttonX: cur?.buttonX ?? false,
+      buttonY: cur?.buttonY ?? false,
     });
   };
 
