@@ -250,47 +250,69 @@ export default function GameScreen() {
   if (!state) return null;
 
   const displayGameId = currentGameId || state.gameId;
+  const showInlineController = isMobile && (state.demo || state.soloPhone) && !gameOver;
+
+  const handleDPad = (dpad: { up: boolean; down: boolean; left: boolean; right: boolean }) => {
+    const p1Id = state.players[0]?.id;
+    if (!p1Id) return;
+    let x = 0, y = 0;
+    if (dpad.left) x = -1;
+    if (dpad.right) x = 1;
+    if (dpad.up) y = -1;
+    if (dpad.down) y = 1;
+    if (x !== 0 && y !== 0) { x *= 0.707; y *= 0.707; }
+    const cur = inputMap.get(p1Id);
+    updateInput({ playerId: p1Id, playerIndex: 0, x, y, buttonA: cur?.buttonA ?? false, buttonB: cur?.buttonB ?? false });
+  };
+
+  const handleFaceBtn = (btn: string, pressed: boolean) => {
+    const p1Id = state.players[0]?.id;
+    if (!p1Id) return;
+    const cur = inputMap.get(p1Id);
+    updateInput({
+      playerId: p1Id,
+      playerIndex: 0,
+      x: cur?.x ?? 0,
+      y: cur?.y ?? 0,
+      buttonA: btn === 'A' ? pressed : (cur?.buttonA ?? false),
+      buttonB: btn === 'B' ? pressed : (cur?.buttonB ?? false),
+    });
+  };
 
   return (
-    <div className="h-screen w-screen bg-background flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border">
-        <span className="font-mono text-xs text-muted-foreground">
-          {state.demo ? 'Demo · Keyboard' : state.soloPhone ? 'Solo · Phone' : `Room ${roomCode}`} · {state.players.length}P
+    <div className="h-[100dvh] w-screen bg-background flex flex-col overflow-hidden">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border shrink-0">
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {state.demo ? (isMobile ? 'Solo' : 'Demo · Keyboard') : state.soloPhone ? 'Solo · Phone' : `Room ${roomCode}`} · {state.players.length}P
         </span>
-        <span className="font-heading text-sm font-semibold text-foreground">
+        <span className="font-heading text-xs font-semibold text-foreground">
           {displayGameId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleToggleMute}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono flex items-center gap-1"
-            title={muted ? 'Unmute' : 'Mute'}
+            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors font-mono"
           >
             {muted ? '🔇' : '🔊'}
           </button>
-          <button onClick={handleBackToLobby} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono">
-            ← Back
+          <button onClick={handleBackToLobby} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors font-mono">
+            ✕
           </button>
         </div>
       </div>
 
-      {state.soloPhone && !gameOver && soloControllerUrl && (
-        <div className="flex items-center justify-center gap-4 py-1.5 border-b border-border bg-card">
-          <span className="text-[10px] font-mono text-muted-foreground">
-            Open on your phone: <span className="text-foreground font-semibold">{window.location.origin}/play?code={roomCode}</span>
-          </span>
-        </div>
-      )}
-
-      {state.demo && !gameOver && (
-        <div className="flex items-center justify-center gap-4 py-1.5 border-b border-border bg-card">
+      {/* Keyboard hint for desktop demo */}
+      {state.demo && !isMobile && !gameOver && (
+        <div className="flex items-center justify-center gap-4 py-1 border-b border-border bg-card shrink-0">
           <span className="text-[10px] font-mono text-muted-foreground">WASD: Move</span>
           <span className="text-[10px] font-mono text-muted-foreground">Space/J: Action</span>
           <span className="text-[10px] font-mono text-muted-foreground">Shift/K: Special</span>
         </div>
       )}
 
-      <div className="flex-1 relative">
+      {/* Game canvas area */}
+      <div className={`relative ${showInlineController ? 'flex-1 min-h-0' : 'flex-1'}`}>
         {isIframeGame && iframeUrl ? (
           <iframe
             ref={iframeRef}
