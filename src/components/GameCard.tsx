@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface GameCardProps {
   id: string;
@@ -49,7 +49,16 @@ const GameCard = forwardRef<HTMLButtonElement, GameCardProps>(function GameCard(
           <span className="font-mono text-[10px] text-muted-foreground">· {minPlayers}–{maxPlayers} players</span>
         </div>
         {contributorName && (
-          <p className="text-[10px] text-muted-foreground">by {contributorName}</p>
+          <p className="text-[10px] text-muted-foreground">
+            by{' '}
+            <Link
+              to={`/dev/${contributorName}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-foreground hover:text-primary transition-colors"
+            >
+              {contributorName}
+            </Link>
+          </p>
         )}
       </div>
     </button>
