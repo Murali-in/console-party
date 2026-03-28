@@ -58,7 +58,7 @@ export default function GameLibrary() {
     ...BUILT_IN_GAMES.filter(g => !privateOfficialTitles.has(g.title.toLowerCase())).map(g => ({
       id: g.id, title: g.title, description: g.description, genre: g.genre,
       min_players: g.minPlayers, max_players: g.maxPlayers, cover_image_url: null,
-      game_type: g.gameType, coverClass: g.coverClass,
+      game_type: g.gameType, coverClass: g.coverClass, contributor_name: 'Murali',
     })),
     ...uniqueCommunityGames.map(g => ({ ...g, coverClass: undefined, contributor_name: g.contributor_name })),
   ];

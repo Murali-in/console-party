@@ -209,6 +209,7 @@ export default function GameDetail() {
             <h1 className="font-heading text-3xl font-bold text-foreground">{game.title}</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">{game.desc}</p>
             <span className="font-mono text-xs text-muted-foreground">{game.minPlayers}–{game.maxPlayers} players</span>
+            <p className="text-xs text-muted-foreground">by <Link to="/dev/murali" className="text-foreground hover:text-primary transition-colors">Murali</Link></p>
             <div className="flex items-center gap-3 flex-wrap pt-2">
               <button onClick={handleStartGame} className="bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity text-sm">
                 Multiplayer →
