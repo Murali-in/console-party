@@ -149,7 +149,7 @@ export default function Landing() {
             <motion.div variants={fadeUp} custom={5} className="flex items-center gap-6 pt-2">
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalGames} games</span>
               <span className="font-mono text-[10px] text-muted-foreground">{stats.totalUsers} players</span>
-              {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-muted-foreground">{stats.activeSessions} games played</span>}
+              {stats.activeSessions > 0 && <span className="font-mono text-[10px] text-muted-foreground">{stats.activeSessions} game players</span>}
               {onlineCount > 0 && (
                 <span className="font-mono text-[10px] text-primary flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
