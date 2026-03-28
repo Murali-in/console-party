@@ -39,6 +39,14 @@ export default function GameScreen() {
   const scoresSavedRef = useRef(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 768);
+  const [controllerHidden, setControllerHidden] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+
+  useEffect(() => {
+    const handleOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    window.addEventListener('resize', handleOrientation);
+    return () => window.removeEventListener('resize', handleOrientation);
+  }, []);
 
   const stateStr = sessionStorage.getItem(`game-${roomCode}`);
   const state: LocationState | null = stateStr ? JSON.parse(stateStr) : null;
