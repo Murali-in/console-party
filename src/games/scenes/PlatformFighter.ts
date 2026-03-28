@@ -5,7 +5,7 @@ import { playPunch, playJump, playKO } from '@/games/SoundFX';
 interface FighterConfig {
   players: RoomPlayer[];
   onGameOver: (winner: string, scores: Record<string, number>) => void;
-  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean }>;
+  inputMap: Record<string, { x: number; y: number; buttonA: boolean; buttonB: boolean; buttonX: boolean; buttonY: boolean; holdTime: number }>;
 }
 
 interface Fighter {
