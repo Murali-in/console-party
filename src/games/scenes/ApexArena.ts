@@ -151,11 +151,12 @@ export default class ApexArenaScene extends Phaser.Scene {
         x: px, y: py,
         hp: 3, maxHp: 3, lives: 3, kills: 0,
         lastAngle: 0, respawnTimer: 0, alive: true,
-        shootCooldown: 0, dashCooldown: 0, invincible: 0,
-        shieldActive: false, shieldTimer: 0,
+        shootCooldown: 0, dashCooldown: 0, meleeCooldown: 0, invincible: 0,
+        shieldActive: false, shieldTimer: 0, shieldCooldown: 0,
         playerId: p.id, playerName: p.name,
         color, colorHex: p.color,
         vx: 0, vy: 0,
+        meleeSlashTimer: 0, dashTrailTimer: 0, hitFlashTimer: 0, speedTrailTimer: 0,
       });
     });
 
