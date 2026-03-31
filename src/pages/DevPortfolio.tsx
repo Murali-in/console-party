@@ -200,7 +200,9 @@ export default function DevPortfolio() {
         </div>
 
         {/* Games */}
-        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">Published Games</h2>
+        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">
+          {profile.role === 'admin' ? 'Official Games' : 'Published Games'}
+        </h2>
         {games.length === 0 ? (
           <p className="text-sm text-muted-foreground">No games published yet.</p>
         ) : (
@@ -212,6 +214,8 @@ export default function DevPortfolio() {
                 <p className="text-[10px] text-muted-foreground">{g.play_count} plays</p>
               </Link>
             ))}
+          </div>
+        )}
           </div>
         )}
       </div>
