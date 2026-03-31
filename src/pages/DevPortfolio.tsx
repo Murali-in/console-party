@@ -144,7 +144,14 @@ export default function DevPortfolio() {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="font-heading text-2xl font-bold text-foreground">{displayName}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold text-foreground">{displayName}</h1>
+              {profile.role === 'admin' && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-primary/10 text-primary border border-primary/20">
+                  Founder & Admin
+                </span>
+              )}
+            </div>
             <p className="font-mono text-xs text-muted-foreground">@{profile.username || profile.email.split('@')[0]}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -193,7 +200,9 @@ export default function DevPortfolio() {
         </div>
 
         {/* Games */}
-        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">Published Games</h2>
+        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">
+          {profile.role === 'admin' ? 'Official Games' : 'Published Games'}
+        </h2>
         {games.length === 0 ? (
           <p className="text-sm text-muted-foreground">No games published yet.</p>
         ) : (
