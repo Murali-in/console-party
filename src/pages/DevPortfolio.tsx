@@ -216,8 +216,6 @@ export default function DevPortfolio() {
             ))}
           </div>
         )}
-          </div>
-        )}
       </div>
       <Footer />
     </div>
