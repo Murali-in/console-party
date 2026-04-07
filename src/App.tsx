@@ -35,6 +35,8 @@ import NPCLab from "./pages/NPCLab";
 import SceneEditor from "./pages/SceneEditor";
 import AssetTools from "./pages/AssetTools";
 import DesignTools from "./pages/DesignTools";
+import ExportTools from "./pages/ExportTools";
+import ParticleAudio from "./pages/ParticleAudio";
 
 const queryClient = new QueryClient();
 
