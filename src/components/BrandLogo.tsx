@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import controllerLogo from '@/assets/controller-logo.png';
+import controllerLogo from '@/assets/logo.png';
 
 interface BrandLogoProps {
   className?: string;
