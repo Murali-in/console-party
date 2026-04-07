@@ -35,6 +35,8 @@ import NPCLab from "./pages/NPCLab";
 import SceneEditor from "./pages/SceneEditor";
 import AssetTools from "./pages/AssetTools";
 import DesignTools from "./pages/DesignTools";
+import ExportTools from "./pages/ExportTools";
+import ParticleAudio from "./pages/ParticleAudio";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +88,8 @@ const App = () => (
                 <Route path="/studio/scene" element={<SceneEditor />} />
                 <Route path="/studio/assets" element={<AssetTools />} />
                 <Route path="/studio/design" element={<DesignTools />} />
+                <Route path="/studio/export" element={<ExportTools />} />
+                <Route path="/studio/particles" element={<ParticleAudio />} />
                 <Route path="/npc-lab" element={<NPCLab />} />
                 {/* Watch */}
                 <Route path="/watch/:roomCode" element={<WatchMode />} />
