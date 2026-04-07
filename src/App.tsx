@@ -32,6 +32,9 @@ import Community from "./pages/Community";
 import DevAnalytics from "./pages/DevAnalytics";
 import GameStudio from "./pages/GameStudio";
 import NPCLab from "./pages/NPCLab";
+import SceneEditor from "./pages/SceneEditor";
+import AssetTools from "./pages/AssetTools";
+import DesignTools from "./pages/DesignTools";
 
 const queryClient = new QueryClient();
 
