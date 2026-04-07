@@ -185,7 +185,7 @@ export default function GameScreen() {
       return () => { clearTimeout(timer); clearInterval(cpuLoop); destroyGame(); stopMusic(); if (channelRef.current) leaveRoom(channelRef.current); };
     }
 
-    // Demo mode: keyboard controls (desktop) + touch controls (mobile via inline controller)
+    // Demo/Solo mode: keyboard controls (desktop only) + touch controls (mobile via inline controller)
     if (state.demo) {
       const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 768);
       const onKeyDown = (e: KeyboardEvent) => keysRef.current.add(e.key.toLowerCase());
