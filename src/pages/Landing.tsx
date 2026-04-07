@@ -340,16 +340,14 @@ export default function Landing() {
 
             {/* Eternity Game Studio */}
             <motion.a
-              href="https://eternitygame.studio"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/studio"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.4 }}
               className="relative p-6 rounded-[10px] border border-border bg-card hover:border-primary/20 transition-colors group"
             >
-              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Coming Soon</span>
+              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary">Live</span>
               <span className="block mb-3">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground group-hover:text-primary transition-colors">
                   <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /><line x1="14" y1="4" x2="10" y2="20" />
@@ -357,21 +355,19 @@ export default function Landing() {
               </span>
               <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity Game Studio</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">Build games by describing them. Live code editor with AI — just tell it what you want and watch your game come to life.</p>
-              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">eternitygame.studio ↗</span>
+              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">Open Studio →</span>
             </motion.a>
 
             {/* Eternity NPC Lab */}
             <motion.a
-              href="https://eternitynpc.lab"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/npc-lab"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.4 }}
               className="relative p-6 rounded-[10px] border border-border bg-card hover:border-primary/20 transition-colors group"
             >
-              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Coming Soon</span>
+              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary">Live</span>
               <span className="block mb-3">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground group-hover:text-primary transition-colors">
                   <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h3a3 3 0 0 1 3 3v1" /><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11H7a3 3 0 0 0-3 3v1" />
@@ -380,7 +376,7 @@ export default function Landing() {
               </span>
               <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity NPC Lab</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">Train NPC characters with AI behavior. Connect your Game Studio project and watch NPCs learn, adapt, and react intelligently.</p>
-              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">eternitynpc.lab ↗</span>
+              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">Open NPC Lab →</span>
             </motion.a>
           </div>
         </div>
