@@ -83,6 +83,9 @@ const App = () => (
                 <Route path="/admin/sandbox/:gameId" element={<AdminSandbox />} />
                 {/* Ecosystem */}
                 <Route path="/studio" element={<GameStudio />} />
+                <Route path="/studio/scene" element={<SceneEditor />} />
+                <Route path="/studio/assets" element={<AssetTools />} />
+                <Route path="/studio/design" element={<DesignTools />} />
                 <Route path="/npc-lab" element={<NPCLab />} />
                 {/* Watch */}
                 <Route path="/watch/:roomCode" element={<WatchMode />} />
