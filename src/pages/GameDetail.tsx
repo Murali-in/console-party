@@ -62,6 +62,12 @@ const GAMES_DATA: Record<string, {
   },
 };
 
+const OG_IMAGES: Record<string, string> = {
+  'apex-arena': 'https://eternityconsole.vercel.app/og-apex-arena.png',
+  'pong': 'https://eternityconsole.vercel.app/og-pong.png',
+  'maze-runner': 'https://eternityconsole.vercel.app/og-maze-runner.png',
+};
+
 export default function GameDetail() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
