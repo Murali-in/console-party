@@ -32,6 +32,9 @@ import Community from "./pages/Community";
 import DevAnalytics from "./pages/DevAnalytics";
 import GameStudio from "./pages/GameStudio";
 import NPCLab from "./pages/NPCLab";
+import SceneEditor from "./pages/SceneEditor";
+import AssetTools from "./pages/AssetTools";
+import DesignTools from "./pages/DesignTools";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +83,9 @@ const App = () => (
                 <Route path="/admin/sandbox/:gameId" element={<AdminSandbox />} />
                 {/* Ecosystem */}
                 <Route path="/studio" element={<GameStudio />} />
+                <Route path="/studio/scene" element={<SceneEditor />} />
+                <Route path="/studio/assets" element={<AssetTools />} />
+                <Route path="/studio/design" element={<DesignTools />} />
                 <Route path="/npc-lab" element={<NPCLab />} />
                 {/* Watch */}
                 <Route path="/watch/:roomCode" element={<WatchMode />} />
