@@ -207,6 +207,42 @@ export default function GameDetail() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${game.title} — Eternity Console`} />
         <meta name="twitter:image" content={gameId ? OG_IMAGES[gameId] || '' : ''} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "VideoGame",
+            "name": game.title,
+            "description": game.desc,
+            "genre": game.genre,
+            "numberOfPlayers": {
+              "@type": "QuantitativeValue",
+              "minValue": game.minPlayers,
+              "maxValue": game.maxPlayers,
+            },
+            "gamePlatform": ["Web Browser", "Mobile Browser"],
+            "applicationCategory": "Game",
+            "operatingSystem": "Any",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+            },
+            "image": gameId ? OG_IMAGES[gameId] || '' : '',
+            "url": `https://eternityconsole.vercel.app/games/${gameId}`,
+            "publisher": {
+              "@type": "Organization",
+              "name": "Eternity Console",
+              "url": "https://eternityconsole.vercel.app",
+            },
+            "author": {
+              "@type": "Person",
+              "name": "Murali",
+            },
+            "playMode": game.maxPlayers > 1 ? "MultiPlayer" : "SinglePlayer",
+            "inLanguage": "en",
+          })}
+        </script>
       </Helmet>
       <Navbar />
       <div className="pt-24 pb-20 px-6 max-w-4xl mx-auto">
