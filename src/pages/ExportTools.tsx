@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
+import StudioNav from '@/components/studio/StudioNav';
 
 /* ── Types ─────────────────────────────────── */
 interface ExportTarget {
@@ -170,6 +171,7 @@ const ExportTools = () => {
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
         <main className="pt-[60px]">
+          <StudioNav />
           <section className="relative overflow-hidden border-b border-border">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-transparent to-primary/3" />
             <div className="mx-auto max-w-5xl px-4 py-8 text-center relative">

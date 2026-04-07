@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
+import StudioNav from '@/components/studio/StudioNav';
 
 /* ── Types ─────────────────────────────────── */
 interface SceneObject {
@@ -336,6 +337,7 @@ const SceneEditor = () => {
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
         <main className="pt-[60px]">
+          <StudioNav />
           <section className="mx-auto max-w-7xl px-4 py-4">
             {/* Top toolbar */}
             <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1">

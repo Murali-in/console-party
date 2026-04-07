@@ -354,7 +354,12 @@ export default function Landing() {
                 </svg>
               </span>
               <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity Game Studio</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Build games by describing them. Live code editor with AI — just tell it what you want and watch your game come to life.</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Build games by describing them. AI generates streaming code in real-time.</p>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {['Generator', 'Scene Editor', 'Assets', 'Particles', 'Export'].map(t => (
+                  <span key={t} className="text-[8px] font-mono text-muted-foreground border border-border rounded-full px-1.5 py-0.5">{t}</span>
+                ))}
+              </div>
               <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">Open Studio →</span>
             </motion.a>
 
@@ -375,7 +380,12 @@ export default function Landing() {
                 </svg>
               </span>
               <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity NPC Lab</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Train NPC characters with AI behavior. Connect your Game Studio project and watch NPCs learn, adapt, and react intelligently.</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Train NPC characters with RL algorithms, behavior trees, and personality sliders.</p>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {['PPO/DQN/A3C', 'Behavior Trees', 'Reward Compiler', 'JSON Export'].map(t => (
+                  <span key={t} className="text-[8px] font-mono text-muted-foreground border border-border rounded-full px-1.5 py-0.5">{t}</span>
+                ))}
+              </div>
               <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">Open NPC Lab →</span>
             </motion.a>
           </div>
