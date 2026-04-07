@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,6 +60,12 @@ const GAMES_DATA: Record<string, {
     controls: ['D-Pad: Move through maze (4 directions)'],
     rules: ['First to the exit scores 5 points', 'Coins give 1 point each', '3 rounds total', 'Highest total score wins'],
   },
+};
+
+const OG_IMAGES: Record<string, string> = {
+  'apex-arena': 'https://eternityconsole.vercel.app/og-apex-arena.png',
+  'pong': 'https://eternityconsole.vercel.app/og-pong.png',
+  'maze-runner': 'https://eternityconsole.vercel.app/og-maze-runner.png',
 };
 
 export default function GameDetail() {
@@ -190,6 +197,17 @@ export default function GameDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{game.title} — Play Free on Eternity Console</title>
+        <meta name="description" content={game.desc} />
+        <meta property="og:title" content={`${game.title} — Eternity Console`} />
+        <meta property="og:description" content={game.desc} />
+        <meta property="og:image" content={gameId ? OG_IMAGES[gameId] || '' : ''} />
+        <meta property="og:url" content={`https://eternityconsole.vercel.app/games/${gameId}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${game.title} — Eternity Console`} />
+        <meta name="twitter:image" content={gameId ? OG_IMAGES[gameId] || '' : ''} />
+      </Helmet>
       <Navbar />
       <div className="pt-24 pb-20 px-6 max-w-4xl mx-auto">
         <Link to="/games" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
