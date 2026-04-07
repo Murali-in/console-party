@@ -309,6 +309,83 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Eternity Ecosystem */}
+      <section className="py-20 px-6 border-t border-border">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+            <span className="font-mono text-[11px] text-muted-foreground tracking-[0.12em] uppercase block mb-2">The Eternity Ecosystem</span>
+            <h2 className="font-heading text-[28px] font-bold text-foreground leading-tight mb-3">More than a console.</h2>
+            <p className="text-sm text-muted-foreground max-w-lg mb-10">Eternity is expanding into a full game creation ecosystem. Build games, train NPCs, and play — all from your browser.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Eternity Console */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0, duration: 0.4 }}
+              className="relative p-6 rounded-[10px] border border-primary/30 bg-card"
+            >
+              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-primary/20 text-primary">Live</span>
+              <span className="block mb-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                  <path d="M6 11h4M8 9v4" /><line x1="15" y1="12" x2="15.01" y2="12" /><line x1="18" y1="10" x2="18.01" y2="10" />
+                  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+                </svg>
+              </span>
+              <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Eternity Console</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Play multiplayer games instantly. Your phone is the controller. No downloads, no apps.</p>
+              <span className="text-[10px] font-mono text-primary">You're here →</span>
+            </motion.div>
+
+            {/* Eternity Game Studio */}
+            <motion.a
+              href="https://eternitygame.studio"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+              className="relative p-6 rounded-[10px] border border-border bg-card hover:border-primary/20 transition-colors group"
+            >
+              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Coming Soon</span>
+              <span className="block mb-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground group-hover:text-primary transition-colors">
+                  <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /><line x1="14" y1="4" x2="10" y2="20" />
+                </svg>
+              </span>
+              <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity Game Studio</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Build games by describing them. Live code editor with AI — just tell it what you want and watch your game come to life.</p>
+              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">eternitygame.studio ↗</span>
+            </motion.a>
+
+            {/* Eternity NPC Lab */}
+            <motion.a
+              href="https://eternitynpc.lab"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="relative p-6 rounded-[10px] border border-border bg-card hover:border-primary/20 transition-colors group"
+            >
+              <span className="absolute top-3 right-3 text-[9px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Coming Soon</span>
+              <span className="block mb-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground group-hover:text-primary transition-colors">
+                  <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h3a3 3 0 0 1 3 3v1" /><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11H7a3 3 0 0 0-3 3v1" />
+                  <circle cx="12" cy="5" r="1" /><path d="M7 18h10" /><path d="M9 22v-4" /><path d="M15 22v-4" />
+                </svg>
+              </span>
+              <h3 className="font-heading text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">Eternity NPC Lab</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Train NPC characters with AI behavior. Connect your Game Studio project and watch NPCs learn, adapt, and react intelligently.</p>
+              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">eternitynpc.lab ↗</span>
+            </motion.a>
+          </div>
+        </div>
+      </section>
+
       {/* Contributors */}
       {contributors.length > 0 && (
         <section className="py-16 px-6 border-t border-border">
