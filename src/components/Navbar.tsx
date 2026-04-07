@@ -42,6 +42,9 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
           <Link to="/developers" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Developers
           </Link>
+          <Link to="/studio" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+            Studio
+          </Link>
           {user && (
             <Link to="/contribute" className="font-heading text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
               Contribute
@@ -103,6 +106,7 @@ const Navbar = forwardRef<HTMLElement>(function Navbar(_props, ref) {
           <Link to="/play/solo" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-foreground">Solo Play</Link>
           <Link to="/community" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-foreground">Community</Link>
           <Link to="/developers" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-foreground">Developers</Link>
+          <Link to="/studio" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-foreground">Studio</Link>
           {user && <Link to="/contribute" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-foreground">Contribute</Link>}
           {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block font-heading text-sm text-primary">Admin</Link>}
           {user ? (
