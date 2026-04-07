@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import PreviewToolbar from '@/components/studio/PreviewToolbar';
+import StudioNav from '@/components/studio/StudioNav';
 
 /* ── Types ─────────────────────────────────── */
 interface PromptEntry {
@@ -238,6 +239,7 @@ const GameStudio = () => {
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
         <main className="pt-[60px]">
+          <StudioNav />
           {/* Hero */}
           <section className="relative overflow-hidden border-b border-border">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
