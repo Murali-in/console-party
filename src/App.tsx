@@ -88,6 +88,8 @@ const App = () => (
                 <Route path="/studio/scene" element={<SceneEditor />} />
                 <Route path="/studio/assets" element={<AssetTools />} />
                 <Route path="/studio/design" element={<DesignTools />} />
+                <Route path="/studio/export" element={<ExportTools />} />
+                <Route path="/studio/particles" element={<ParticleAudio />} />
                 <Route path="/npc-lab" element={<NPCLab />} />
                 {/* Watch */}
                 <Route path="/watch/:roomCode" element={<WatchMode />} />
